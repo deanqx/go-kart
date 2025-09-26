@@ -1,4 +1,4 @@
-/*.pdf
-/.~lock.*
+*.pdf
+.~lock.*
 
 !/lastenheft.pdf
