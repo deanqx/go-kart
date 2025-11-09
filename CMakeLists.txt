@@ -1,0 +1,47 @@
+cmake_minimum_required(VERSION 4.1)
+project(avr-motor-controller C)
+
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(MCU atmega328p)
+set(F_CPU 16000000UL)          
+set(PROGRAMMER arduino)
+set(PORT /dev/ttyUSB0)
+set(BAUD 115200)
+
+# Generic: no OS
+set(CMAKE_SYSTEM_NAME Generic)
+set(CMAKE_C_COMPILER avr-gcc)
+
+# Compiler flags
+add_definitions(-DF_CPU=${F_CPU})
+set(CMAKE_C_FLAGS "-mmcu=${MCU} -Os")
+set(CMAKE_EXE_LINKER_FLAGS "-mmcu=${MCU}")
+
+add_executable(${PROJECT_NAME}.elf
+    src/main.c
+)
+
+target_include_directories(${PROJECT_NAME}.elf
+    PRIVATE
+    lib
+)
+
+# convert ELF to IHEX
+add_custom_command(
+    OUTPUT ${PROJECT_NAME}.hex
+    DEPENDS ${PROJECT_NAME}.elf
+    COMMAND avr-objcopy -O ihex -R .eeprom ${PROJECT_NAME}.elf ${PROJECT_NAME}.hex
+)
+
+add_custom_target(hex
+    DEPENDS ${PROJECT_NAME}.hex
+)
+
+add_custom_target(upload
+    ALL
+    DEPENDS hex
+    COMMAND avrdude -p ${MCU} -c ${PROGRAMMER} -P ${PORT} -b ${BAUD} -U flash:w:${PROJECT_NAME}.hex
+)
