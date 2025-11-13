@@ -5,11 +5,10 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(MCU atmega328p)
+set(MCU at90can32)
 set(F_CPU 16000000UL)          
-set(PROGRAMMER arduino)
-set(PORT /dev/ttyUSB0)
-set(BAUD 115200)
+set(PROGRAMMER stk500)
+set(BAUD 9600)
 
 # Generic: no OS
 set(CMAKE_SYSTEM_NAME Generic)
@@ -43,5 +42,5 @@ add_custom_target(hex
 add_custom_target(upload
     ALL
     DEPENDS hex
-    COMMAND avrdude -p ${MCU} -c ${PROGRAMMER} -P ${PORT} -b ${BAUD} -U flash:w:${PROJECT_NAME}.hex
+    COMMAND avrdude -p ${MCU} -c ${PROGRAMMER} -b ${BAUD} -U flash:w:${PROJECT_NAME}.hex
 )
