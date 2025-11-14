@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.1)
-project(avr-motor-controller C)
+project(go-kart C)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -7,8 +7,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(MCU at90can32)
 set(F_CPU 16000000UL)          
-set(PROGRAMMER stk500)
-set(BAUD 9600)
+set(PROGRAMMER avrisp2)
+set(PROGRAMMER_BAUD 125kHz)
 
 # Generic: no OS
 set(CMAKE_SYSTEM_NAME Generic)
@@ -42,5 +42,5 @@ add_custom_target(hex
 add_custom_target(upload
     ALL
     DEPENDS hex
-    COMMAND avrdude -p ${MCU} -c ${PROGRAMMER} -b ${BAUD} -U flash:w:${PROJECT_NAME}.hex
+    COMMAND avrdude -p ${MCU} -c ${PROGRAMMER} -B ${PROGRAMMER_BAUD} -U flash:w:${PROJECT_NAME}.hex
 )
