@@ -7,7 +7,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(MCU at90can32)
 set(F_CPU 16000000UL)          
-set(PROGRAMMER avrisp2)
+set(PROGRAMMER usbasp)
 set(PROGRAMMER_BAUD 125kHz)
 
 # Generic: no OS
