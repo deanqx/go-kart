@@ -23,12 +23,10 @@ add_executable(${PROJECT_NAME}.elf
     src/main.c
 )
 
-target_include_directories(${PROJECT_NAME}.elf
-    PRIVATE
-    lib
-)
+add_subdirectory(libs/usart)
+target_link_libraries(${PROJECT_NAME}.elf PRIVATE usart)
 
-# convert ELF to IHEX
+# convert ELF to Intel HEX
 add_custom_command(
     OUTPUT ${PROJECT_NAME}.hex
     DEPENDS ${PROJECT_NAME}.elf
