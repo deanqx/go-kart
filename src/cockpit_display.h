@@ -2,6 +2,7 @@
  * # Beschreibung
  *
  * Mit dieser Bibliothek kann das Tacho Display gesteuert werden.
+ * Die Nachrichten an das Display werden Über UART gesendet.
  * Orientiert an dem Projekt: JCS-BK_1046
  *
  * # Einbinden ins eigene Programm
