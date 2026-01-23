@@ -36,8 +36,10 @@ add_executable(${PROJECT_NAME}.elf
     src/main.c
 )
 
+add_subdirectory(lib)
+target_link_libraries(${PROJECT_NAME}.elf PRIVATE can)
+
 if(COMPILE_COCKPIT)
-    add_subdirectory(libs/usart)
     target_link_libraries(${PROJECT_NAME}.elf PRIVATE usart)
 endif()
 

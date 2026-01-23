@@ -1,0 +1,8 @@
+build/at90can_get_message.o: at90can_get_message.c at90can_private.h \
+ can_private.h ../can.h config.h can_buffer.h utils.h
+at90can_private.h:
+can_private.h:
+../can.h:
+config.h:
+can_buffer.h:
+utils.h:
