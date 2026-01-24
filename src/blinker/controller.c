@@ -28,8 +28,8 @@ void main_loop(void) {
   SET_OUTPUT(LED_BLINKER_12);
   SET_OUTPUT(LED_BLINKER_13);
 
-  _delay_ms(500);
-  while (1) {
+  while (0) {
+    _delay_ms(500);
     SET(LED_BREAK);
     _delay_ms(500);
     SET(LED_BLINKER_0);

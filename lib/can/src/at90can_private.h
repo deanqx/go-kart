@@ -28,33 +28,32 @@
  */
 // ----------------------------------------------------------------------------
 
-#ifndef	AT90CAN_PRIVATE_H
-#define	AT90CAN_PRIVATE_H
+#ifndef AT90CAN_PRIVATE_H
+#define AT90CAN_PRIVATE_H
 
 // ----------------------------------------------------------------------------
 
-#include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/io.h>
 
 #include <stdlib.h>
 
-#include "can_private.h"
 #include "can.h"
 #include "can_buffer.h"
+#include "can_private.h"
 #include "utils.h"
 
 // ----------------------------------------------------------------------------
 
-#if (defined (__AVR_AT90CAN32__) || \
-	 defined (__AVR_AT90CAN64__) || \
-	 defined (__AVR_AT90CAN128__)) && \
-	 BUILD_FOR_AT90CAN == 1
+#if (defined(__AVR_AT90CAN32__) || defined(__AVR_ATmega16M1__) ||              \
+     defined(__AVR_AT90CAN64__) || defined(__AVR_AT90CAN128__)) &&             \
+    BUILD_FOR_AT90CAN == 1
 
 #if F_CPU != 16000000UL
-	#error	only 16 MHz for F_CPU supported!
+#error only 16 MHz for F_CPU supported!
 #endif
 
-#define	SUPPORT_FOR_AT90CAN__		1
+#define SUPPORT_FOR_AT90CAN__ 1
 
 // ----------------------------------------------------------------------------
 
@@ -73,7 +72,7 @@ extern volatile uint8_t _free_buffer;
 #endif
 
 #if CAN_FORCE_TX_ORDER
-extern volatile uint8_t _transmission_in_progress ;
+extern volatile uint8_t _transmission_in_progress;
 #endif
 
 // ----------------------------------------------------------------------------
@@ -84,7 +83,6 @@ extern void _disable_mob_interrupt(uint8_t mob);
 
 // ----------------------------------------------------------------------------
 extern void _enable_mob_interrupt(uint8_t mob);
-
 
 // ----------------------------------------------------------------------------
 extern uint8_t at90can_send_message(const can_t *msg);
@@ -115,50 +113,48 @@ extern bool at90can_copy_mob_to_message(can_t *msg);
 // ----------------------------------------------------------------------------
 // enter standby mode => messages are not transmitted nor received
 
-extern __attribute__ ((gnu_inline)) inline void _enter_standby_mode(void)
-{
-	// request abort
-	CANGCON = (1 << ABRQ);
-	
-	// wait until receiver is not busy
-	while (CANGSTA & (1 << RXBSY))
-		;
-	
-	// request standby mode
-	CANGCON = 0;
-	
-	// wait until the CAN Controller has entered standby mode
-	while (CANGSTA & (1 << ENFG))
-		;
+extern __attribute__((gnu_inline)) inline void _enter_standby_mode(void) {
+  // request abort
+  CANGCON = (1 << ABRQ);
+
+  // wait until receiver is not busy
+  while (CANGSTA & (1 << RXBSY))
+    ;
+
+  // request standby mode
+  CANGCON = 0;
+
+  // wait until the CAN Controller has entered standby mode
+  while (CANGSTA & (1 << ENFG))
+    ;
 }
 
 // ----------------------------------------------------------------------------
 // leave standby mode => CAN Controller is connected to CAN Bus
 
-extern __attribute__ ((gnu_inline)) inline void _leave_standby_mode(void)
-{
-	// save CANPAGE register
-	uint8_t canpage = CANPAGE;
-	
-	// reenable all MObs
-	for (uint8_t i=0;i<15;i++) {
-		CANPAGE = i << 4;
-		CANCDMOB = CANCDMOB;
-	}
-	
-	// restore CANPAGE
-	CANPAGE = canpage;
-	
-	// request normal mode
-	CANGCON = (1 << ENASTB);
-	
-	// wait until the CAN Controller has left standby mode
-	while ((CANGSTA & (1 << ENFG)) == 0)
-		;
+extern __attribute__((gnu_inline)) inline void _leave_standby_mode(void) {
+  // save CANPAGE register
+  uint8_t canpage = CANPAGE;
+
+  // reenable all MObs
+  for (uint8_t i = 0; i < 15; i++) {
+    CANPAGE = i << 4;
+    CANCDMOB = CANCDMOB;
+  }
+
+  // restore CANPAGE
+  CANPAGE = canpage;
+
+  // request normal mode
+  CANGCON = (1 << ENASTB);
+
+  // wait until the CAN Controller has left standby mode
+  while ((CANGSTA & (1 << ENFG)) == 0)
+    ;
 }
 
 #endif
 
 // ----------------------------------------------------------------------------
 
-#endif	// AT90CAN_PRIVATE_H
+#endif // AT90CAN_PRIVATE_H

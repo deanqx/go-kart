@@ -35,6 +35,7 @@ add_executable(${PROJECT_NAME}.elf
     src/main.c
 )
 
+add_compile_definitions(SUPPORT_FOR_AT90CAN__)
 add_subdirectory(lib/can)
 target_link_libraries(${PROJECT_NAME}.elf PRIVATE can)
 
