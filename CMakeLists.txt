@@ -10,7 +10,6 @@ set(CMAKE_C_COMPILER avr-gcc)
 
 set(F_CPU 16000000UL)          
 set(PROGRAMMER usbasp)
-set(PROGRAMMER_BAUD 125kHz)
 
 option(COMPILE_BLINKER "Compile for blinker microcontroller (can only compile for one at a time)" OFF)
 option(COMPILE_COCKPIT "Compile for cockpit microcontroller (can only compile for one at a time)" OFF)
@@ -36,10 +35,12 @@ add_executable(${PROJECT_NAME}.elf
     src/main.c
 )
 
-add_subdirectory(lib)
+add_subdirectory(lib/can)
 target_link_libraries(${PROJECT_NAME}.elf PRIVATE can)
 
 if(COMPILE_COCKPIT)
+    # usart library is not compatible with ATmega16M1
+    add_subdirectory(lib/usart)
     target_link_libraries(${PROJECT_NAME}.elf PRIVATE usart)
 endif()
 
@@ -57,5 +58,5 @@ add_custom_target(hex
 add_custom_target(upload
     ALL
     DEPENDS hex
-    COMMAND avrdude -p ${MCU} -c ${PROGRAMMER} -B ${PROGRAMMER_BAUD} -U flash:w:${PROJECT_NAME}.hex
+    COMMAND avrdude -p ${MCU} -c ${PROGRAMMER} -U flash:w:${PROJECT_NAME}.hex
 )
