@@ -2,7 +2,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
-void main_loop(void) {
+int main(void) {
   // uart0_puts("JCS-BK_1091_GO-KART\r\n");
   // uart0_puts("Lenkrad und Anzeige\r\n");
   // uart0_puts("von Dean Schneider (GYT26)\r\n");

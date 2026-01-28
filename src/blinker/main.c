@@ -7,7 +7,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
-void main_loop(void) {
+int main(void) {
   SET_OUTPUT(INTERNAL_LED_LA);
   RESET(INTERNAL_LED_LA); // light up internal LED
 
