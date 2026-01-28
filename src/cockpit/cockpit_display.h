@@ -20,8 +20,13 @@
 #ifndef COCKPIT_DISPLAY_H
 #define COCKPIT_DISPLAY_H
 
+#include "usart.h"
 #include <stdbool.h>
 #include <stdint.h>
+
+// these macros are used to choose between usart0 or usart1
+#define CD_UART_PUTC uart1_putc
+#define CD_UART_PUTS uart1_puts
 
 typedef enum {
   GEAR_NEUTRAL,
@@ -52,74 +57,74 @@ void cd_set_blinker_left(bool enable);
 void cd_set_blinker_right(bool enable);
 void cd_set_warnblinker(bool enable);
 void cd_set_light(LightState light_state);
-void cd_set_rpm(uint8_t rpm);
+void cd_set_rpm(uint16_t rpm);
 /// @param speed_kmh range in [0; 99]
 void cd_set_speed(uint8_t speed_kmh);
 void cd_set_gear(GearState gear_state);
 void cd_set_battery(BatteryState battery_state);
-/// @param value range in [0; 100]
-void cd_set_throttle(uint8_t value);
-/// @param value range in [0; 100]
-void cd_set_brake(uint8_t value);
+/// @param percent range in [0; 100]
+void cd_set_throttle(uint8_t percent);
+/// @param percent range in [0; 100]
+void cd_set_brake(uint8_t percent);
 
 #ifdef COCKPIT_DISPLAY_IMPLEMENTATION
 
-#include "usart.h"
+#include <stdlib.h>
 
 void _cd_terminate(void) {
-  uart_putc(0xFF);
-  uart_putc(0xFF);
-  uart_putc(0xFF);
+  CD_UART_PUTC(0xFF);
+  CD_UART_PUTC(0xFF);
+  CD_UART_PUTC(0xFF);
 }
 
 void cd_set_blinker_left(const bool enable) {
-  uart_puts("bL.pic=");
+  CD_UART_PUTS("bL.pic=");
 
   if (enable) {
-    uart_putc('1');
+    CD_UART_PUTC('1');
   } else {
-    uart_putc('0');
+    CD_UART_PUTC('0');
   }
 
   _cd_terminate();
 }
 
 void cd_set_blinker_right(const bool enable) {
-  uart_puts("bR.pic=");
+  CD_UART_PUTS("bR.pic=");
 
   if (enable) {
-    uart_putc('3');
+    CD_UART_PUTC('3');
   } else {
-    uart_putc('2');
+    CD_UART_PUTC('2');
   }
 
   _cd_terminate();
 }
 
 void cd_set_warnblinker(const bool enable) {
-  uart_puts("warnB.pic=1");
+  CD_UART_PUTS("warnB.pic=1");
 
   if (enable) {
-    uart_putc('6');
+    CD_UART_PUTC('6');
   } else {
-    uart_putc('5');
+    CD_UART_PUTC('5');
   }
 
   _cd_terminate();
 }
 
 void cd_set_light(const LightState light_state) {
-  uart_puts("warnB.pic=1");
+  CD_UART_PUTS("warnB.pic=1");
 
   switch (light_state) {
   case LIGHT_LOW_BEAM:
-    uart_putc('7');
+    CD_UART_PUTC('7');
     break;
   case LIGHT_HIGH_BEAM:
-    uart_putc('8');
+    CD_UART_PUTC('8');
     break;
   case LIGHT_PARKING:
-    uart_putc('9');
+    CD_UART_PUTC('9');
     break;
   }
 
@@ -130,59 +135,68 @@ void cd_set_light(const LightState light_state) {
 void _cd_set_custom_digit(const uint8_t digit) {
   const uint8_t digit_shifted = digit + 4;
 
-  if (digit >= 10) { // values in the range: [10; 13]
-    const uint8_t digit_shifted_ones = digit - 10;
-    uart_putc('1');
-    uart_putc(digit_shifted_ones + '0');
+  if (digit_shifted >= 10) { // values in the range: [10; 13]
+    const uint8_t digit_shifted_ones = digit_shifted - 10;
+    CD_UART_PUTC('1');
+    CD_UART_PUTC(digit_shifted_ones + '0');
   } else {
-    uart_putc(digit_shifted + '0');
+    CD_UART_PUTC(digit_shifted + '0');
   }
 }
 
-void cd_set_rpm(uint8_t rpm) {
-  const uint8_t rpm_hundreds = rpm % 100;
-  rpm -= rpm_hundreds * 100;
-  const uint8_t rpm_tens = rpm % 10;
-  rpm -= rpm_tens * 10;
-  const uint8_t rpm_ones = rpm;
+void cd_set_rpm(uint16_t rpm) {
+  const uint8_t ones = rpm % 10;
 
-  uart_puts("rpm1.pic=");
-  _cd_set_custom_digit(rpm_hundreds);
-  uart_puts(" rpm2.pic=");
-  _cd_set_custom_digit(rpm_tens);
-  uart_puts(" rpm3.pic=");
-  _cd_set_custom_digit(rpm_ones);
+  CD_UART_PUTS("rpm3.pic=");
+  _cd_set_custom_digit(ones);
+  _cd_terminate();
+
+  rpm -= ones;
+  const uint8_t tens = (rpm / 10) % 10;
+
+  CD_UART_PUTS("rpm2.pic=");
+  _cd_set_custom_digit(tens);
+  _cd_terminate();
+
+  rpm -= tens * 10;
+  const uint8_t hundreds = (rpm / 100) % 10;
+
+  CD_UART_PUTS("rpm1.pic=");
+  _cd_set_custom_digit(hundreds);
   _cd_terminate();
 }
 
 void cd_set_speed(uint8_t speed_kmh) {
-  const uint8_t speed_tens = speed_kmh % 10;
-  speed_kmh -= speed_tens * 10;
-  const uint8_t speed_ones = speed_kmh;
+  const uint8_t ones = speed_kmh % 10;
 
-  uart_puts("speed1.pic=");
-  _cd_set_custom_digit(speed_tens);
-  uart_puts(" speed2.pic=");
-  _cd_set_custom_digit(speed_ones);
+  CD_UART_PUTS("speed2.pic=");
+  _cd_set_custom_digit(ones);
+  _cd_terminate();
+
+  speed_kmh -= ones;
+  const uint8_t tens = (speed_kmh / 10) % 10;
+
+  CD_UART_PUTS("speed1.pic=");
+  _cd_set_custom_digit(tens);
   _cd_terminate();
 }
 
 void cd_set_gear(const GearState gear_state) {
-  uart_puts("gear.pic=");
+  CD_UART_PUTS("gear.pic=");
 
   switch (gear_state) {
   case GEAR_NEUTRAL:
-    uart_putc('1');
-    uart_putc('4');
+    CD_UART_PUTC('1');
+    CD_UART_PUTC('4');
     break;
   case GEAR_FIRST:
-    uart_putc('5');
+    CD_UART_PUTC('5');
     break;
   case GEAR_SECOND:
-    uart_putc('6');
+    CD_UART_PUTC('6');
     break;
   case GEAR_THIRD:
-    uart_putc('7');
+    CD_UART_PUTC('7');
     break;
   }
 
@@ -190,41 +204,47 @@ void cd_set_gear(const GearState gear_state) {
 }
 
 void cd_set_battery(const BatteryState battery_state) {
-  uart_puts("battery.pic=2");
+  CD_UART_PUTS("battery.pic=2");
 
   switch (battery_state) {
   case BATTERY_EMPTY:
-    uart_putc('0');
+    CD_UART_PUTC('0');
     break;
   case BATTERY_ONE_FOURTH:
-    uart_putc('1');
+    CD_UART_PUTC('1');
     break;
   case BATTERY_TWO_FOURTH:
-    uart_putc('2');
+    CD_UART_PUTC('2');
     break;
   case BATTERY_THREE_FOURTH:
-    uart_putc('3');
+    CD_UART_PUTC('3');
     break;
   case BATTERY_FOUR_FOURTH:
-    uart_putc('4');
+    CD_UART_PUTC('4');
     break;
   case BATTERY_CHARGING:
-    uart_putc('5');
+    CD_UART_PUTC('5');
     break;
   }
 
   _cd_terminate();
 }
 
-void cd_set_throttle(const uint8_t value) {
-  uart_puts("throttle.val=");
-  uart_putuint(value);
+void cd_set_throttle(const uint8_t percent) {
+  char percent_str[7]; // heading, 5 digit bytes, NULL
+  utoa(percent, percent_str, 10);
+
+  CD_UART_PUTS("throttle.val=");
+  CD_UART_PUTS(percent_str);
   _cd_terminate();
 }
 
-void cd_set_brake(const uint8_t value) {
-  uart_puts("brake.val=");
-  uart_putuint(value);
+void cd_set_brake(const uint8_t percent) {
+  char percent_str[7]; // heading, 5 digit bytes, NULL
+  utoa(percent, percent_str, 10);
+
+  CD_UART_PUTS("brake.val=");
+  CD_UART_PUTS(percent_str);
   _cd_terminate();
 }
 
