@@ -3,10 +3,11 @@
 #include <util/delay.h>
 
 int main(void) {
-  // uart0_puts("JCS-BK_1091_GO-KART\r\n");
-  // uart0_puts("Lenkrad und Anzeige\r\n");
-  // uart0_puts("von Dean Schneider (GYT26)\r\n");
-  // DDRD = 1 << PD3;
+  uart0_init(BAUD_CALC(9600UL));
+  uart0_puts("JCS-BK_1091_GO-KART\r\n");
+  uart0_puts("Lenkrad und Anzeige\r\n");
+  uart0_puts("von Dean Schneider (GYT26)\r\n");
+
   uart1_init(BAUD_CALC(9600UL));
 
   while (1) {

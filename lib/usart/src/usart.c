@@ -258,7 +258,15 @@
 //Arguments : Character/byte to send.
 //Return    : none
 //******************************************************************
-#ifdef USART_NO_ABI_BREAKING_PREMATURES
+#ifdef __AVR_AT90CAN32__
+void uart0_putc(char data) {
+  // wait for empty transmit buffer
+  while (!(UCSR0A & (1 << UDRE0)))
+    ;
+  // send the data
+  UDR0 = data;
+}
+#elif defined(USART_NO_ABI_BREAKING_PREMATURES)
 	void uart0_putc(char data)
 	{
 	#ifdef PUTC0_CONVERT_LF_TO_CRLF
@@ -940,7 +948,15 @@
 
 #ifndef NO_TX1_INTERRUPT
 
-#ifdef USART_NO_ABI_BREAKING_PREMATURES
+#ifdef __AVR_AT90CAN32__
+void uart1_putc(char data) {
+  // wait for empty transmit buffer
+  while (!(UCSR1A & (1 << UDRE1)))
+    ;
+  // send the data
+  UDR1 = data;
+}
+#elif defined(USART_NO_ABI_BREAKING_PREMATURES)
 	void uart1_putc(char data)
 	{
 	#ifdef PUTC1_CONVERT_LF_TO_CRLF
