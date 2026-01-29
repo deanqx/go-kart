@@ -27,7 +27,7 @@ elseif(BUILD_TARGET STREQUAL "cockpit")
         src/cockpit/main.c
     )
 else()
-    message(FATAL_ERROR "Invalid value for BUILD_TARGET='${COMPILE_FOR}' Usage: -DBUILD_TARGET=blinker or -DBUILD_TARGET=cockpit")
+    message(FATAL_ERROR "Invalid value BUILD_TARGET='${COMPILE_FOR}', Usage: -DBUILD_TARGET=blinker or -DBUILD_TARGET=cockpit")
 endif()
 
 # Compiler flags
