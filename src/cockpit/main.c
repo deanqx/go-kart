@@ -1,5 +1,6 @@
-#include "can.h"
+#include <avr/interrupt.h>
 #define COCKPIT_DISPLAY_IMPLEMENTATION
+#include "can.h"
 #include "cockpit_display.h"
 #include "usart.h"
 #include <avr/io.h>
@@ -24,14 +25,27 @@ int main(void) {
       .data = {0xAA},
   };
 
+  const can_t msg2 = {
+      .id = 0x12340000,
+      .flags.extended = true,
+      .flags.rtr = false,
+      .length = 1,
+      .data = {0xBB},
+  };
+
+  sei();
   while (1) {
     uart1_puts("here\r\n");
-    can_send_message(&msg);
-    uart1_puts("test\r\n");
+    uart1_putuint(can_send_message(&msg));
+    uart1_puts("A\r\n");
+    uart1_putuint(can_send_message(&msg2));
+    uart1_puts("B\r\n");
 
     if (can_check_message()) {
+      uart1_puts("received something\r\n");
       can_t received_command;
       can_get_message(&received_command);
+      received_command.id = 0x200;
       can_send_message(&received_command); // echo for testing
     }
 
