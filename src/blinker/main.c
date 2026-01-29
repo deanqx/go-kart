@@ -68,6 +68,8 @@ int main(void) {
     PORTD = 0;
   }
 
+  // TODO reduce mob count
+
   // Initialize MCP2515 with 250 kB/s because of 8 MHz crystal
   // actual bus speed is 125 kB/s
   // CS pin is configured in lib/can/include/config.h

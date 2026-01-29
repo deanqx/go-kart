@@ -1,3 +1,4 @@
+#include "can.h"
 #define COCKPIT_DISPLAY_IMPLEMENTATION
 #include "cockpit_display.h"
 #include "usart.h"
@@ -6,11 +7,40 @@
 
 int main(void) {
   uart0_init(BAUD_CALC(9600UL));
+  uart1_init(BAUD_CALC(9600UL));
+
+  if (!can_init(BITRATE_125_KBPS)) {
+    uart0_puts("error: can_init\r\n");
+
+    while (true) {
+    }
+  }
+
+  const can_t msg = {
+      .id = 0x12340000,
+      .flags.extended = true,
+      .flags.rtr = false,
+      .length = 1,
+      .data = {0xAA},
+  };
+
+  while (1) {
+    uart1_puts("here\r\n");
+    can_send_message(&msg);
+    uart1_puts("test\r\n");
+
+    if (can_check_message()) {
+      can_t received_command;
+      can_get_message(&received_command);
+      can_send_message(&received_command); // echo for testing
+    }
+
+    _delay_ms(1000);
+  }
+
   uart0_puts("JCS-BK_1091_GO-KART\r\n");
   uart0_puts("Lenkrad und Anzeige\r\n");
   uart0_puts("von Dean Schneider (GYT26)\r\n");
-
-  uart1_init(BAUD_CALC(9600UL));
 
   cd_set_rpm(789);
   cd_set_speed(12);
