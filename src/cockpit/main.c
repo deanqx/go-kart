@@ -1,17 +1,32 @@
-#include <avr/interrupt.h>
-#define COCKPIT_DISPLAY_IMPLEMENTATION
 #include "can.h"
-#include "cockpit_display.h"
 #include "usart.h"
+#include <avr/interrupt.h>
 #include <avr/io.h>
 #include <util/delay.h>
+
+#define COCKPIT_DISPLAY_IMPLEMENTATION
+#include "cockpit_display.h"
 
 int main(void) {
   uart0_init(BAUD_CALC(9600UL));
   uart1_init(BAUD_CALC(9600UL));
 
   if (!can_init(BITRATE_125_KBPS)) {
-    uart0_puts("error: can_init\r\n");
+    uart0_puts("error: while can initialization\r\n");
+
+    while (true) {
+    }
+  }
+
+  can_filter_t can_filter = {
+      .id = 0x00001234,
+      .mask = 0x1FFFFFFF,
+      .flags.extended = 0x3, // filter with extended id
+      .flags.rtr = 0x2,      // receive both RTR and normal
+  };
+
+  if (!can_set_filter(0, &can_filter)) {
+    uart0_puts("error: while setting can message filters\r\n");
 
     while (true) {
     }
@@ -25,27 +40,19 @@ int main(void) {
       .data = {0xAA},
   };
 
-  const can_t msg2 = {
-      .id = 0x12340000,
-      .flags.extended = true,
-      .flags.rtr = false,
-      .length = 1,
-      .data = {0xBB},
-  };
-
   sei();
   while (1) {
-    uart1_puts("here\r\n");
-    uart1_putuint(can_send_message(&msg));
-    uart1_puts("A\r\n");
-    uart1_putuint(can_send_message(&msg2));
-    uart1_puts("B\r\n");
+    if (can_send_message(&msg) == 0) {
+      uart0_puts("error: can_send_message\r\n");
+      continue;
+    }
 
-    if (can_check_message()) {
-      uart1_puts("received something\r\n");
-      can_t received_command;
-      can_get_message(&received_command);
-      received_command.id = 0x200;
+    can_t received_command;
+
+    if (can_get_message(&received_command)) {
+      received_command.id = 0x12340000;
+      received_command.flags.extended = true;
+      received_command.flags.rtr = false;
       can_send_message(&received_command); // echo for testing
     }
 
