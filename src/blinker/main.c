@@ -1,7 +1,10 @@
 /*
  * Pinbelegung ist in hal.h zu finden.
+ *
+ * TODO write ZWL and timers
  */
 
+#include "blinker_controller.c"
 #include "can.h"
 #include "hal.h"
 #include <avr/interrupt.h>
@@ -9,64 +12,26 @@
 #include <util/delay.h>
 
 int main(void) {
-  SET_OUTPUT(INTERNAL_LED_LA);
-  RESET(INTERNAL_LED_LA); // light up internal LED
+  hal_init();
+  bc_init_timer_interrupt();
 
-  SET_OUTPUT(LED_BREAK);
-  SET_OUTPUT(LED_BACKLIGHT);
-  SET_OUTPUT(LED_BLINKER_0);
-  SET_OUTPUT(LED_BLINKER_1);
-  SET_OUTPUT(LED_BLINKER_2);
-  SET_OUTPUT(LED_BLINKER_3);
-  SET_OUTPUT(LED_BLINKER_4);
-  SET_OUTPUT(LED_BLINKER_5);
-  SET_OUTPUT(LED_BLINKER_6);
-  SET_OUTPUT(LED_BLINKER_7);
-  SET_OUTPUT(LED_BLINKER_8);
-  SET_OUTPUT(LED_BLINKER_9);
-  SET_OUTPUT(LED_BLINKER_10);
-  SET_OUTPUT(LED_BLINKER_11);
-  SET_OUTPUT(LED_BLINKER_12);
-  SET_OUTPUT(LED_BLINKER_13);
+  sei();
 
-  while (0) {
-    _delay_ms(500);
-    SET(LED_BREAK);
-    _delay_ms(500);
-    SET(LED_BLINKER_0);
-    _delay_ms(500);
-    SET(LED_BLINKER_1);
-    _delay_ms(500);
-    SET(LED_BLINKER_2);
-    _delay_ms(500);
-    SET(LED_BLINKER_3);
-    _delay_ms(500);
-    SET(LED_BLINKER_4);
-    _delay_ms(500);
-    SET(LED_BLINKER_5);
-    _delay_ms(500);
-    SET(LED_BLINKER_6);
-    _delay_ms(500);
-    SET(LED_BLINKER_7);
-    _delay_ms(500);
-    SET(LED_BLINKER_8);
-    _delay_ms(500);
-    SET(LED_BLINKER_9);
-    _delay_ms(500);
-    SET(LED_BLINKER_10);
-    _delay_ms(500);
-    SET(LED_BLINKER_11);
-    _delay_ms(500);
-    SET(LED_BLINKER_12);
-    _delay_ms(500);
-    SET(LED_BLINKER_13);
-    _delay_ms(500);
-    SET(LED_BACKLIGHT);
-    _delay_ms(500);
+  SET(LED_BREAK);
+  _delay_ms(500);
+  RESET(LED_BREAK);
+  _delay_ms(500);
 
-    PORTB = 0;
-    PORTC = 0;
-    PORTD = 0;
+  SET(LED_BACKLIGHT);
+  _delay_ms(500);
+  RESET(LED_BACKLIGHT);
+  _delay_ms(500);
+
+  while (1) {
+    bc_enable_blinker();
+    _delay_ms(5000);
+    bc_disable_blinker();
+    _delay_ms(2000);
   }
 
   if (!can_init(BITRATE_125_KBPS)) {
@@ -105,7 +70,7 @@ int main(void) {
   sei();
   while (1) {
     if (can_send_message(&msg) == 0) {
-      //uart0_puts("error: can_send_message\r\n");
+      // uart0_puts("error: can_send_message\r\n");
       continue;
     }
 
