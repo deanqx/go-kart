@@ -4,6 +4,7 @@
 
 #include "can.h"
 #include "hal.h"
+#include <avr/interrupt.h>
 #include <avr/io.h>
 #include <util/delay.h>
 
@@ -68,47 +69,55 @@ int main(void) {
     PORTD = 0;
   }
 
-  // TODO reduce mob count
+  if (!can_init(BITRATE_125_KBPS)) {
+    // uart0_puts("error: while can initialization\r\n");
 
-  // Initialize MCP2515 with 250 kB/s because of 8 MHz crystal
-  // actual bus speed is 125 kB/s
-  // CS pin is configured in lib/can/include/config.h
-  if (!can_init(BITRATE_250_KBPS)) {
-    while (1) {
+    while (true) {
       TOGGLE(INTERNAL_LED_LA);
-      _delay_ms(500);
+      _delay_ms(200);
     }
   }
 
-  can_t hello_msg = {
-      .id = 0x0000,
-      .length = 8,
-      .data = {'J', 'C', 'S', '1', '0', '9', '1'},
+  can_filter_t can_filter = {
+      .id = 0x00001234,
+      .mask = 0x1FFFFFFF,
+      .flags.extended = 0x3, // filter with extended id
+      .flags.rtr = 0x2,      // receive both RTR and normal
   };
 
-  if (!can_send_message(&hello_msg)) {
-    while (1) {
+  if (!can_set_filter(0, &can_filter)) {
+    // uart0_puts("error: while setting can message filters\r\n");
+
+    while (true) {
       TOGGLE(INTERNAL_LED_LA);
-      _delay_ms(500);
+      _delay_ms(200);
     }
   }
 
+  const can_t msg = {
+      .id = 0x12340000,
+      .flags.extended = true,
+      .flags.rtr = false,
+      .length = 1,
+      .data = {0xAA},
+  };
+
+  sei();
   while (1) {
-    if (!can_check_message()) {
+    if (can_send_message(&msg) == 0) {
+      //uart0_puts("error: can_send_message\r\n");
       continue;
     }
 
     can_t received_command;
 
-    if (!can_get_message(&received_command)) {
-      // TODO send error
-      continue;
+    if (can_get_message(&received_command)) {
+      received_command.id = 0x12340000;
+      received_command.flags.extended = true;
+      received_command.flags.rtr = false;
+      can_send_message(&received_command); // echo for testing
     }
 
-    if (received_command.id != 0x2000) {
-      continue;
-    }
-
-    TOGGLE(INTERNAL_LED_LA);
+    _delay_ms(1000);
   }
 }

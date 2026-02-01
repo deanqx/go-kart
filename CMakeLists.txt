@@ -33,7 +33,7 @@ endif()
 # Compiler flags
 add_definitions(-DF_CPU=${F_CPU})
 set(CMAKE_C_FLAGS "-mmcu=${MCU} -Os -Wall -fshort-enums")
-set(CMAKE_EXE_LINKER_FLAGS "-mmcu=${MCU}")
+set(CMAKE_EXE_LINKER_FLAGS "-mmcu=${MCU} -Wall")
 
 add_compile_definitions(SUPPORT_FOR_AT90CAN__)
 add_subdirectory(lib/can)

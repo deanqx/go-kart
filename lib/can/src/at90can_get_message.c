@@ -122,7 +122,7 @@ uint8_t at90can_get_message(can_t *msg)
 		return 0;
 	
 	// find the MOb with the received message
-	for (mob = 0; mob < 15; mob++)
+	for (mob = 0; mob < MOB_COUNT; mob++)
 	{
 		CANPAGE = mob << 4;
 		

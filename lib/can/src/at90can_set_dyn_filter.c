@@ -34,8 +34,8 @@
 // ----------------------------------------------------------------------------
 bool at90can_set_filter(uint8_t number, const can_filter_t *filter)
 {
-	if (number > 14) {
-		// it is only possible to serve a maximum of 15 filters
+	if (number >= MOB_COUNT) {
+		// it is only possible to serve a maximum of MOB_COUNT filters
 		return false;
 	}
 	

@@ -72,6 +72,8 @@ extern "C" {
 #define ONLY_RTR 3
 //@}
 
+#define CAN_ERROR 0
+
 /** \ingroup	can_interface
  *  \brief		Bitraten fuer den CAN-Bus
  */

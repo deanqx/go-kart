@@ -50,14 +50,10 @@ void at90can_copy_message_to_mob(const can_t *msg)
 		// extended CAN ID
 		CANCDMOB |= (1 << IDE);
 		
-		CANIDT4 = (uint8_t)  msg->id << 3;
-		
-		uint32_t temp = msg->id << 3;
-		uint8_t *ptr = (uint8_t *) &temp;
-		
-		CANIDT3 = *(ptr + 1);
-		CANIDT2 = *(ptr + 2);
-		CANIDT1 = *(ptr + 3);
+		CANIDT4 = (uint8_t) (msg->id << 3);
+		CANIDT3 = (uint8_t) (msg->id >> 5);
+		CANIDT2 = (uint8_t) (msg->id >> (5 + 8));
+		CANIDT1 = (uint8_t) (msg->id >> (5 + 8 + 8));
 	}
 	else {
 		// standard CAN ID
@@ -92,7 +88,7 @@ uint8_t at90can_send_message(const can_t *msg)
 {
 	// check if there is any free MOb
 	uint8_t mob = _find_free_mob();
-	if (mob >= 15)
+	if (mob >= MOB_COUNT)
 		return 0;
 	
 	// load corresponding MOb page ...

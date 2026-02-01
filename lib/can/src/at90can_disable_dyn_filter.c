@@ -36,7 +36,7 @@
 
 bool at90can_disable_filter(uint8_t number)
 {
-	if (number > 14)
+	if (number >= MOB_COUNT)
 	{
 		if (number == CAN_ALL_FILTER)
 		{
@@ -45,7 +45,7 @@ bool at90can_disable_filter(uint8_t number)
 			CANIE2 = 0;
 			
 			// disable all MObs
-			for (uint8_t i = 0;i < 15;i++) {
+			for (uint8_t i = 0;i < MOB_COUNT;i++) {
 				CANPAGE = (i << 4);
 				
 				// disable MOb (read-write required)
@@ -59,13 +59,13 @@ bool at90can_disable_filter(uint8_t number)
 			#endif
 			
 			#if CAN_TX_BUFFER_SIZE == 0
-			_free_buffer = 15;
+			_free_buffer = MOB_COUNT;
 			#endif
 			
 			return true;
 		}
 		
-		// it is only possible to serve a maximum of 15 filters
+		// it is only possible to serve a maximum of MOB_COUNT filters
 		return false;
 	}
 	

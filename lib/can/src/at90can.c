@@ -111,7 +111,7 @@ uint8_t _find_free_mob(void)
 	#endif
 	
 	uint8_t i;
-	for (i = 0;i < 15;i++)
+	for (i = 0;i < MOB_COUNT;i++)
 	{
 		// load MOb page
 		CANPAGE = i << 4;
@@ -148,7 +148,7 @@ void _enable_mob_interrupt(uint8_t mob)
 
 // ----------------------------------------------------------------------------
 
-bool at90can_init(uint8_t bitrate)
+bool at90can_init(can_bitrate_t bitrate)
 {
 	if (bitrate >= 8)
 		return false;
@@ -163,7 +163,7 @@ bool at90can_init(uint8_t bitrate)
 	CANBT3 = pgm_read_byte(&_at90can_cnf[bitrate][2]);
 	
 	// activate CAN transmit- and receive-interrupt
-	CANGIT = 0;
+	// CANGIT = 0; // initial value is 0 and you can't reset by writing 0
 	CANGIE = (1 << ENIT) | (1 << ENRX) | (1 << ENTX);
 	
 	// set timer prescaler to 199 which results in a timer
@@ -171,7 +171,7 @@ bool at90can_init(uint8_t bitrate)
 	CANTCON = 199;
 	
 	// disable all filters
-	at90can_disable_filter( 0xff );
+	at90can_disable_filter(CAN_ALL_FILTER);
 	
 	#if CAN_RX_BUFFER_SIZE > 0
 	can_buffer_init( &can_rx_buffer, CAN_RX_BUFFER_SIZE, can_rx_list );
@@ -191,11 +191,15 @@ bool at90can_init(uint8_t bitrate)
 // The CANPAGE register have to be restored after usage, otherwise it
 // could cause trouble in the application programm.
 
+#ifdef __AVR_ATmega16M1__
+ISR(CAN_INT_vect)
+#else
 ISR(CANIT_vect)
+#endif
 {
 	uint8_t canpage;
 	uint8_t mob;
-	
+
 	if ((CANHPMOB & 0xF0) != 0xF0)
 	{
 		// save MOb page register
@@ -287,6 +291,10 @@ ISR(CANIT_vect)
 
 // ----------------------------------------------------------------------------
 // Overflow of CAN timer
+#ifdef __AVR_ATmega16M1__
+ISR(CAN_TOVF_vect) {}
+#else
 ISR(OVRIT_vect) {}
+#endif
 
 #endif	// SUPPORT_FOR_AT90CAN__

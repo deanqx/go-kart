@@ -49,6 +49,12 @@
      defined(__AVR_AT90CAN64__) || defined(__AVR_AT90CAN128__)) &&             \
     BUILD_FOR_AT90CAN == 1
 
+#ifdef __AVR_ATmega16M1__
+#define MOB_COUNT 6
+#else // AT90CAN
+#define MOB_COUNT 15
+#endif
+
 #if F_CPU != 16000000UL
 #error only 16 MHz for F_CPU supported!
 #endif
@@ -137,7 +143,7 @@ extern __attribute__((gnu_inline)) inline void _leave_standby_mode(void) {
   uint8_t canpage = CANPAGE;
 
   // reenable all MObs
-  for (uint8_t i = 0; i < 15; i++) {
+  for (uint8_t i = 0; i < MOB_COUNT; i++) {
     CANPAGE = i << 4;
     CANCDMOB = CANCDMOB;
   }
