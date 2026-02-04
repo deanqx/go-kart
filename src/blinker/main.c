@@ -4,38 +4,38 @@
  * TODO write ZWL and timers
  */
 
+#define BAUD 9600UL
+
 #include "blinker_controller.c"
 #include "can.h"
 #include "hal.h"
+#include "uart_AM16M1.h"
 #include <avr/interrupt.h>
 #include <avr/io.h>
 #include <util/delay.h>
 
+static const uint32_t CAN_ID = 0x00001234;
+
+#define BREAK_BIT 0
+#define BLINKER_BIT 1
+#define BACKLIGHT_BIT 2
+
 int main(void) {
   hal_init();
+  usart_init();
   bc_init_timer_interrupt();
 
-  sei();
-
-  SET(LED_BREAK);
-  _delay_ms(500);
-  RESET(LED_BREAK);
-  _delay_ms(500);
-
-  SET(LED_BACKLIGHT);
-  _delay_ms(500);
-  RESET(LED_BACKLIGHT);
-  _delay_ms(500);
-
-  while (0) {
-    bc_enable_blinker();
-    _delay_ms(5000);
-    bc_disable_blinker();
-    _delay_ms(2000);
-  }
+  usart_puts("JCS-BK_1091_GO-KART\r\n");
+  usart_puts("von Dean Schneider (GYT26)\r\n");
+  usart_puts("Blinker-Modul mit CAN-ID: 0x");
+  usart_puthex((uint8_t) (CAN_ID >> 8 * 3));
+  usart_puthex((uint8_t) (CAN_ID >> 8 * 2));
+  usart_puthex((uint8_t) (CAN_ID >> 8 * 1));
+  usart_puthex((uint8_t) (CAN_ID >> 8 * 0));
+  usart_puts("\r\n");
 
   if (!can_init(BITRATE_125_KBPS)) {
-    // uart0_puts("error: while can initialization\r\n");
+    usart_puts("fatal error: while can initialization\r\n");
 
     while (true) {
       TOGGLE(INTERNAL_LED_LA);
@@ -44,14 +44,14 @@ int main(void) {
   }
 
   can_filter_t can_filter = {
-      .id = 0x00001234,
-      .mask = 0x1FFFFFFF,
+      .id = CAN_ID,
+      .mask = 0x1FFFFFFF,    // only accept exactly this ID
       .flags.extended = 0x3, // filter with extended id
       .flags.rtr = 0x2,      // receive both RTR and normal
   };
 
   if (!can_set_filter(0, &can_filter)) {
-    // uart0_puts("error: while setting can message filters\r\n");
+    usart_puts("fatal error: while setting can message filters\r\n");
 
     while (true) {
       TOGGLE(INTERNAL_LED_LA);
@@ -59,31 +59,58 @@ int main(void) {
     }
   }
 
-  const can_t msg = {
-      .id = 0x12340000,
-      .flags.extended = true,
-      .flags.rtr = false,
-      .length = 1,
-      .data = {0xAA},
-  };
-
   sei();
+
+  can_t received_can_message;
+  char command = usart_getc_free();
+
   while (1) {
-    if (can_send_message(&msg) == 0) {
-      // uart0_puts("error: can_send_message\r\n");
-      _delay_ms(1000);
-      continue;
+    // --- Einlesen ---
+    // read command from UART if one was send
+    command = usart_getc_free();
+
+    if (command == 0) { // no uart command
+      if (!can_get_message(&received_can_message)) {
+        continue;
+      }
+
+      if (received_can_message.flags.rtr == true) {
+        const can_t healthy_message = {
+          .id = 0x200,
+          .flags.rtr = false,
+          .flags.extended = true,
+          .length = 0,
+        };
+
+        can_send_message(&healthy_message);
+        continue;
+      }
+
+      if (received_can_message.length != 1) {
+        usart_puts("error: received command but DLC does not equal 1\r\n");
+        continue;
+      }
+
+      command = received_can_message.data[0];
     }
 
-    can_t received_command;
-
-    if (can_get_message(&received_command)) {
-      received_command.id = 0x12340000;
-      received_command.flags.extended = true;
-      received_command.flags.rtr = false;
-      can_send_message(&received_command); // echo for testing
+    // --- Verarbeiten und Ausgaben ---
+    if (command & (1 << BREAK_BIT)) {
+      SET(LED_BREAK);
+    } else {
+      RESET(LED_BREAK);
     }
 
-    _delay_ms(1000);
+    if (command & (1 << BLINKER_BIT)) {
+      bc_enable_blinker();
+    } else if (bc_is_blinker_enabled()) {
+      bc_disable_blinker();
+    }
+
+    if (command & (1 << BACKLIGHT_BIT)) {
+      SET(LED_BACKLIGHT);
+    } else {
+      RESET(LED_BACKLIGHT);
+    }
   }
 }

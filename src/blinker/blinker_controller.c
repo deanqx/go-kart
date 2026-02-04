@@ -1,5 +1,6 @@
 #include "hal.h"
 #include <avr/interrupt.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 uint8_t bc_current_stage = 0;
@@ -26,6 +27,12 @@ void bc_disable_blinker(void) {
   // reset blinker
   bc_current_stage = 0;
   reset_all_blinker_leds();
+}
+
+// @returns true when blinker is enabled
+bool bc_is_blinker_enabled(void) {
+  // check if interrupt TIMER1_COMPA is active
+  return TIMSK1 >> OCIE1A & 1;
 }
 
 ISR(TIMER1_COMPA_vect) {
@@ -74,9 +81,10 @@ ISR(TIMER1_COMPA_vect) {
   case 13:
     SET(LED_BLINKER_13);
     break;
-  case 14 + (12 - 1):
+  }
+
+  if (bc_current_stage == 14 + (12 - 1)) {
     reset_all_blinker_leds();
-    break;
   }
 
   bc_current_stage++;

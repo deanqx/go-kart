@@ -266,6 +266,13 @@ void uart0_putc(char data) {
   // send the data
   UDR0 = data;
 }
+#elif defined(__AVR_ATmega16M1__)
+void uart0_putc(char data) {
+  // wait for empty transmit buffer
+  while((LINSIR & (1 << LBUSY)));
+  // send the data
+  LINDAT = c;
+}
 #elif defined(USART_NO_ABI_BREAKING_PREMATURES)
 	void uart0_putc(char data)
 	{
@@ -956,6 +963,7 @@ void uart1_putc(char data) {
   // send the data
   UDR1 = data;
 }
+#elif defined(__AVR_ATmega16M1__)
 #elif defined(USART_NO_ABI_BREAKING_PREMATURES)
 	void uart1_putc(char data)
 	{
@@ -2595,6 +2603,8 @@ void uart1_putc(char data) {
 //Arguments : none
 //Return    : Received character or NULL if buffer is empty.
 //******************************************************************
+#if defined(__AVR_AT90CAN32__)
+#elif defined(__AVR_ATmega16M1__)
 #ifdef USART_NO_ABI_BREAKING_PREMATURES
 	char uart0_getc(void)
 	{
