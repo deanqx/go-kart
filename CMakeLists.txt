@@ -36,8 +36,26 @@ add_definitions(-DF_CPU=${F_CPU})
 set(CMAKE_C_FLAGS "-mmcu=${MCU} -Os -Wall -fshort-enums")
 set(CMAKE_EXE_LINKER_FLAGS "-mmcu=${MCU} -Wall")
 
-add_compile_definitions(SUPPORT_FOR_AT90CAN__)
-add_subdirectory(lib/can)
+add_subdirectory(lib/avr-can-lib)
+target_compile_definitions(can PUBLIC
+    CAN_CONFIG_LOADED
+    # Select if you want to use 29 bit identifiers.
+    SUPPORT_EXTENDED_CANID=1
+    # Select if you want to use timestamps.
+    # Timestamps are sourced from a register internal to the AT90CAN.
+    # Selecting them on any other controller will have no effect, they will
+    # be 0 all the time.
+    SUPPORT_TIMESTAMPS=0
+    SUPPORT_MCP2515=0
+    SUPPORT_AT90CAN=1
+    SUPPORT_SJA1000=0
+    MCP2515_CS="B,2"
+    MCP2515_INT="B,4"
+    CAN_RX_BUFFER_SIZE=16
+    CAN_TX_BUFFER_SIZE=8
+    # only available if CAN_TX_BUFFER_SIZE > 0
+    CAN_FORCE_TX_ORDER=1
+)
 target_link_libraries(${PROJECT_NAME}.elf PRIVATE can)
 
 if(MCU STREQUAL "at90can32")

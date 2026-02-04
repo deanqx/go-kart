@@ -27,7 +27,7 @@ int main(void) {
   RESET(LED_BACKLIGHT);
   _delay_ms(500);
 
-  while (1) {
+  while (0) {
     bc_enable_blinker();
     _delay_ms(5000);
     bc_disable_blinker();
@@ -71,6 +71,7 @@ int main(void) {
   while (1) {
     if (can_send_message(&msg) == 0) {
       // uart0_puts("error: can_send_message\r\n");
+      _delay_ms(1000);
       continue;
     }
 
