@@ -1,23 +1,34 @@
 #include "hal.h"
 #include <avr/interrupt.h>
+#include <avr/io.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-uint8_t bc_current_stage = 0;
+static uint8_t bc_current_stage = 0;
+
+void bc_backlight(void) {
+  OCR1B = 12222; // 25 % brightness
+}
 
 /// Have to enable global interrupts with sei()
-/// Uses timer1 and resets timer value at interrupt
 /// See project documentation for more details about calculation
-void bc_init_timer_interrupt(void) {
-  // TIMER1 clock: 16 MHz / 8 = 2 MHz
-  TCCR1B = 1 << CS11;
-  // reset when register A matches
-  OCR1A = 48888;
+void bc_init_timer1(void) {
+  // Clear OC1B on compare match, set OC1B at TOP (large OCR1B value == bright)
+  // clear timer on compare match with OCR1A
+  TCCR1A = 1 << COM1B1 | 1 << WGM11 | 1 << WGM10;
+  // Timer1 clock: 16 MHz / 8 = 2 MHz
+  TCCR1B = 1 << WGM13 | 1 << WGM12 | 1 << CS11;
+  OCR1A = 48888; // Timer1 at 41 Hz
+  bc_backlight();
+}
+
+void bc_break(void) {
+  OCR1B = OCR1A; // 100 % brightness
 }
 
 void bc_enable_blinker(void) {
   // enable interrupt TIMER1_COMPA
-  TIMSK1 = 1 << OCIE1A;
+  TIMSK1 |= 1 << OCIE1A;
 }
 
 void bc_disable_blinker(void) {
