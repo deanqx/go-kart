@@ -4,8 +4,6 @@
  * TODO write ZWL and timers
  */
 
-#define BAUD 9600UL
-
 #include "blinker_controller.c"
 #include "can.h"
 #include "hal.h"
@@ -20,22 +18,32 @@ static const uint32_t CAN_ID = 0x00001234;
 #define BLINKER_BIT 1
 #define BACKLIGHT_BIT 2
 
+void print_uart_command_help(void) {
+  uart_puts("info: UART Befehle:\n");
+  uart_puts("info: Bremsenlicht an = '0'\n");
+  uart_puts("info: Bremsenlicht aus = '1'\n");
+  uart_puts("info: Blinkerlicht an = '2'\n");
+  uart_puts("info: Blinkerlicht aus = '3'\n");
+  uart_puts("info: Rücklicht an = '4'\n");
+  uart_puts("info: Rücklicht aus = '5'\n");
+}
+
 int main(void) {
+  uart_init();
   hal_init();
-  usart_init();
   bc_init_timer_interrupt();
 
-  usart_puts("JCS-BK_1091_GO-KART\r\n");
-  usart_puts("von Dean Schneider (GYT26)\r\n");
-  usart_puts("Blinker-Modul mit CAN-ID: 0x");
-  usart_puthex((uint8_t) (CAN_ID >> 8 * 3));
-  usart_puthex((uint8_t) (CAN_ID >> 8 * 2));
-  usart_puthex((uint8_t) (CAN_ID >> 8 * 1));
-  usart_puthex((uint8_t) (CAN_ID >> 8 * 0));
-  usart_puts("\r\n");
+  uart_puts("\ninfo: JCS-BK_1091_GO-KART von Dean Schneider (GYT26)\n");
+  uart_puts("info: Blinker-Modul mit CAN-ID: 0x");
+  uart_puthex((uint8_t)(CAN_ID >> 8 * 3));
+  uart_puthex((uint8_t)(CAN_ID >> 8 * 2));
+  uart_puthex((uint8_t)(CAN_ID >> 8 * 1));
+  uart_puthex((uint8_t)(CAN_ID >> 8 * 0));
+  uart_putc('\n');
+  print_uart_command_help();
 
   if (!can_init(BITRATE_125_KBPS)) {
-    usart_puts("fatal error: while can initialization\r\n");
+    uart_puts("fatal error: while can initialization\n");
 
     while (true) {
       TOGGLE(INTERNAL_LED_LA);
@@ -51,7 +59,7 @@ int main(void) {
   };
 
   if (!can_set_filter(0, &can_filter)) {
-    usart_puts("fatal error: while setting can message filters\r\n");
+    uart_puts("fatal error: while setting can message filters\n");
 
     while (true) {
       TOGGLE(INTERNAL_LED_LA);
@@ -62,24 +70,26 @@ int main(void) {
   sei();
 
   can_t received_can_message;
-  char command = usart_getc_free();
+  char state = 0;
 
   while (1) {
     // --- Einlesen ---
     // read command from UART if one was send
-    command = usart_getc_free();
+    const char command_uart = uart_getc();
 
-    if (command == 0) { // no uart command
+    if (command_uart == 0) { // no uart command
       if (!can_get_message(&received_can_message)) {
         continue;
       }
 
+      uart_puts("info: received command over CAN\n");
+
       if (received_can_message.flags.rtr == true) {
         const can_t healthy_message = {
-          .id = 0x200,
-          .flags.rtr = false,
-          .flags.extended = true,
-          .length = 0,
+            .id = 0x200,
+            .flags.rtr = false,
+            .flags.extended = true,
+            .length = 0,
         };
 
         can_send_message(&healthy_message);
@@ -87,27 +97,64 @@ int main(void) {
       }
 
       if (received_can_message.length != 1) {
-        usart_puts("error: received command but DLC does not equal 1\r\n");
+        uart_puts("error: DLC does not equal 1\n");
         continue;
       }
 
-      command = received_can_message.data[0];
+      state = received_can_message.data[0];
+      uart_puts("info: command=");
+      uart_puthex(state);
+      uart_putc('\n');
+    } else {
+      uart_puts("info: received command over UART: ");
+      uart_putc(command_uart);
+      uart_putc('\n');
+
+      // --- Verarbeiten ---
+      switch (command_uart) {
+      case '0':
+        state |= (1 << BREAK_BIT);
+        break;
+      case '1':
+        state &= ~(1 << BREAK_BIT);
+        break;
+      case '2':
+        state |= (1 << BLINKER_BIT);
+        break;
+      case '3':
+        state &= ~(1 << BLINKER_BIT);
+        break;
+      case '4':
+        state |= (1 << BACKLIGHT_BIT);
+        break;
+      case '5':
+        state &= ~(1 << BACKLIGHT_BIT);
+        break;
+      default:
+        uart_puts("error: unknown command\n");
+        print_uart_command_help();
+        continue;
+      }
     }
 
-    // --- Verarbeiten und Ausgaben ---
-    if (command & (1 << BREAK_BIT)) {
+    // TODO fix bug with state
+    // TODO send command over CAN every few seconds
+    // TODO breaklight and backlight with PWM, reverse light rename
+
+    // --- Ausgaben ---
+    if (state & (1 << BREAK_BIT)) {
       SET(LED_BREAK);
     } else {
       RESET(LED_BREAK);
     }
 
-    if (command & (1 << BLINKER_BIT)) {
+    if (state & (1 << BLINKER_BIT)) {
       bc_enable_blinker();
     } else if (bc_is_blinker_enabled()) {
       bc_disable_blinker();
     }
 
-    if (command & (1 << BACKLIGHT_BIT)) {
+    if (state & (1 << BACKLIGHT_BIT)) {
       SET(LED_BACKLIGHT);
     } else {
       RESET(LED_BACKLIGHT);
