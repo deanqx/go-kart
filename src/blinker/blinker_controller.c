@@ -2,7 +2,7 @@
  * Bibliothek um Blinker zu steuern.
  * Verwendet timer0 und timer1
  *
- * Author: Dean Schneider
+ * Author: Dean Schneider (GYT26)
  */
 
 #include "hal.h"

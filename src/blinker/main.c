@@ -2,6 +2,8 @@
  * Pinbelegung ist in hal.h zu finden.
  * Timer0 wird für periodische Statusnachricht über CAN und die Blinker LEDs
  * genutzt. Timer1 wird für das Bremslicht PWM genutzt.
+ *
+ * Author: Dean Schneider (GYT26)
  */
 
 #include "blinker_controller.c"

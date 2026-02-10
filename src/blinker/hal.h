@@ -5,7 +5,7 @@
  * Dadurch wird der Code leichter lesbar, wartbarer und besser portierbar.
  * Allerdings oft etwas langsamer und größer als reiner Low-Level-Code.
  *
- * Author: Dean Schneider
+ * Author: Dean Schneider (GYT26)
  */
 
 #ifndef HAL_H
