@@ -13,12 +13,22 @@
 #include <stdint.h>
 #include <util/delay.h>
 
-#define CMD_BREAKLIGHT_BIT 0
-#define CMD_BLINKER_BIT 1
-#define CMD_REVERSELIGHT_BIT 2
+#define UPPER_LIGHT_BIT 0
+#define BLINKER_BIT 1
+#define LOWER_LIGHT_BIT 2
+
 static const char PRINT_UART_COMMANDS = 0xff;
-static const uint32_t CAN_ID = 0x00001234;
 static const uint32_t CAN_ID_STATE_MESSAGE = 0x00001235;
+
+#if defined(BLINKER_FRONT) && defined(BLINKER_RIGHT)
+static const uint32_t CAN_ID = 0x00001234;
+#elif defined(BLINKER_FRONT) && defined(BLINKER_LEFT)
+static const uint32_t CAN_ID = 0x00001234;
+#elif defined(BLINKER_BACK) && defined(BLINKER_RIGHT)
+static const uint32_t CAN_ID = 0x00001234;
+#else // defined(BLINKER_BACK) && defined(BLINKER_LEFT)
+static const uint32_t CAN_ID = 0x00001234;
+#endif
 
 static uint8_t light_state = 0;
 static bool send_light_state = false;
@@ -27,22 +37,22 @@ static bool send_light_state = false;
 uint8_t process_command_from_uart(const char command_char) {
   switch (command_char) {
   case '1':
-    light_state |= (1 << CMD_BREAKLIGHT_BIT);
+    light_state |= (1 << UPPER_LIGHT_BIT);
     break;
   case '2':
-    light_state &= ~(1 << CMD_BREAKLIGHT_BIT);
+    light_state &= ~(1 << UPPER_LIGHT_BIT);
     break;
   case '3':
-    light_state |= (1 << CMD_BLINKER_BIT);
+    light_state |= (1 << BLINKER_BIT);
     break;
   case '4':
-    light_state &= ~(1 << CMD_BLINKER_BIT);
+    light_state &= ~(1 << BLINKER_BIT);
     break;
   case '5':
-    light_state |= (1 << CMD_REVERSELIGHT_BIT);
+    light_state |= (1 << LOWER_LIGHT_BIT);
     break;
   case '6':
-    light_state &= ~(1 << CMD_REVERSELIGHT_BIT);
+    light_state &= ~(1 << LOWER_LIGHT_BIT);
     break;
   default:
     uart_puts("error: unknown command\n");
@@ -161,22 +171,22 @@ int main(void) {
     uart_puthex(light_state);
     uart_putc('\n');
 
-    if (light_state & (1 << CMD_BREAKLIGHT_BIT)) {
-      bc_break();
+    if (light_state & (1 << UPPER_LIGHT_BIT)) {
+      bc_upper_light_on();
     } else {
-      bc_backlight();
+      bc_upper_light_off();
     }
 
-    if (light_state & (1 << CMD_BLINKER_BIT)) {
-      bc_enable_blinker();
+    if (light_state & (1 << BLINKER_BIT)) {
+      bc_blinker_on();
     } else if (bc_is_blinker_enabled()) {
-      bc_disable_blinker();
+      bc_blinker_off();
     }
 
-    if (light_state & (1 << CMD_REVERSELIGHT_BIT)) {
-      SET(LED_REVERSE);
+    if (light_state & (1 << LOWER_LIGHT_BIT)) {
+      SET(LED_LOWER_LIGHT);
     } else {
-      RESET(LED_REVERSE);
+      RESET(LED_LOWER_LIGHT);
     }
 
   continue_main_loop:

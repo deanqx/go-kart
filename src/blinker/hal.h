@@ -13,7 +13,7 @@
 
 #include <avr/io.h>
 
-// PORTB
+// --- PORTB ---
 #define LED_BLINKER_5 B, 6
 #define LED_BLINKER_6 B, 5
 #define LED_BLINKER_8 B, 4
@@ -22,19 +22,19 @@
 #define LED_BLINKER_12 B, 1
 #define LED_BLINKER_13 B, 7
 
-// PORTC
-#define LED_BREAK_BACKLIGHT C, 1
-#define LED_REVERSE C, 4
+// --- PORTC ---
+#define LED_UPPER_LIGHT_PWM C, 1
+#define LED_LOWER_LIGHT C, 4
 #define LED_BLINKER_3 C, 5
 #define LED_BLINKER_4 C, 0
 #define LED_BLINKER_7 C, 7
 #define LED_BLINKER_10 C, 6
 
-// PORTD
+// --- PORTD ---
 #define LED_BLINKER_0 D, 5
 #define LED_BLINKER_1 D, 6
 #define LED_BLINKER_2 D, 7
-// low active
+/// low active
 #define INTERNAL_LED_LA D, 2
 
 #define _SET2(port, bit) PORT##port |= (1 << bit)
@@ -57,7 +57,7 @@ void hal_init(void) {
          _P(LED_BLINKER_9) | _P(LED_BLINKER_11) | _P(LED_BLINKER_12) |
          _P(LED_BLINKER_13);
 
-  DDRC = _P(LED_BREAK_BACKLIGHT) | _P(LED_REVERSE) | _P(LED_BLINKER_3) |
+  DDRC = _P(LED_UPPER_LIGHT_PWM) | _P(LED_LOWER_LIGHT) | _P(LED_BLINKER_3) |
          _P(LED_BLINKER_4) | _P(LED_BLINKER_7) | _P(LED_BLINKER_10);
 
   DDRD = _P(INTERNAL_LED_LA) | _P(LED_BLINKER_0) | _P(LED_BLINKER_1) |
@@ -69,7 +69,7 @@ void reset_all_blinker_leds(void) {
              _P(LED_BLINKER_9) | _P(LED_BLINKER_11) | _P(LED_BLINKER_12) |
              _P(LED_BLINKER_13));
 
-  PORTC &= ~(_P(LED_REVERSE) | _P(LED_BLINKER_3) | _P(LED_BLINKER_4) |
+  PORTC &= ~(_P(LED_LOWER_LIGHT) | _P(LED_BLINKER_3) | _P(LED_BLINKER_4) |
              _P(LED_BLINKER_7) | _P(LED_BLINKER_10));
 
   PORTD &= ~(_P(INTERNAL_LED_LA) | _P(LED_BLINKER_0) | _P(LED_BLINKER_1) |
