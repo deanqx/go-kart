@@ -1,3 +1,10 @@
+/*
+ * Bibliothek um Blinker zu steuern.
+ * Verwendet timer0 und timer1
+ *
+ * Author: Dean Schneider
+ */
+
 #include "hal.h"
 #include <avr/interrupt.h>
 #include <avr/io.h>
@@ -5,49 +12,69 @@
 #include <stdint.h>
 
 static uint8_t bc_current_stage = 0;
+static uint8_t bc_interrupt_count = 0;
 
+/// Rücklicht anschalten und Bremsenlicht ausschalten
 void bc_backlight(void) {
-  OCR1B = 12222; // 25 % brightness
+  OCR1B = 251; // 25 % brightness
 }
 
 /// Have to enable global interrupts with sei()
 /// See project documentation for more details about calculation
-void bc_init_timer1(void) {
-  // Clear OC1B on compare match, set OC1B at TOP (large OCR1B value == bright)
-  // clear timer on compare match with OCR1A
+void bc_init_timer0_timer1(void) {
+  // --- Timer0 ---
+  // clear timer on compare match with OCRA
+  TCCR0A = 1 << WGM01;
+  // F_CPU / 1024 = 16 MHz / 1024 = 15625 Hz
+  TCCR0B = 1 << CS02 | 1 << CS00;
+  OCR0A = 217; // Timer0 at 72 Hz
+
+  // --- Timer1 ---
+  // Clear OC1B on compare match, set OC1B at 1023 (large OCR1B value == bright)
+  // clear timer on compare match with 1023
   TCCR1A = 1 << COM1B1 | 1 << WGM11 | 1 << WGM10;
-  // Timer1 clock: 16 MHz / 8 = 2 MHz
-  TCCR1B = 1 << WGM13 | 1 << WGM12 | 1 << CS11;
-  OCR1A = 48888; // Timer1 at 41 Hz
+  // Timer1 clock: no prescaling, 16 MHz / 1023 = 15640 Hz
+  TCCR1B = 1 << WGM12 | 1 << CS10;
   bc_backlight();
 }
 
+/// Bremsenlicht anschalten und Rücklicht ausschalten
 void bc_break(void) {
-  OCR1B = OCR1A; // 100 % brightness
+  OCR1B = 1023; // 100 % brightness
 }
 
 void bc_enable_blinker(void) {
   // enable interrupt TIMER1_COMPA
-  TIMSK1 |= 1 << OCIE1A;
+  TIMSK0 |= 1 << OCIE0A;
 }
 
 void bc_disable_blinker(void) {
   // disable interrupt TIMER1_COMPA
-  TIMSK1 &= ~(1 << OCIE1A);
+  TIMSK0 &= ~(1 << OCIE0A);
 
   // reset blinker
   bc_current_stage = 0;
+  bc_interrupt_count = 0;
   reset_all_blinker_leds();
 }
 
 // @returns true when blinker is enabled
 bool bc_is_blinker_enabled(void) {
   // check if interrupt TIMER1_COMPA is active
-  return TIMSK1 >> OCIE1A & 1;
+  return TIMSK0 >> OCIE0A & 1;
 }
 
-ISR(TIMER1_COMPA_vect) {
-  TCNT1 = 0;
+ISR(TIMER0_COMPA_vect) {
+  // timer frequency / SOFT_PRESCALER = frequency
+  static const uint8_t SOFT_PRESCALER = 3; // about 24 Hz
+
+  bc_interrupt_count++;
+
+  if (bc_interrupt_count != SOFT_PRESCALER) {
+    return;
+  }
+
+  bc_interrupt_count = 0;
 
   switch (bc_current_stage) {
   case 0:
@@ -94,14 +121,15 @@ ISR(TIMER1_COMPA_vect) {
     break;
   }
 
-  if (bc_current_stage == 14 + (12 - 1)) {
+  if (bc_current_stage == 14 + (7 - 1)) {
     reset_all_blinker_leds();
+    SET(LED_BLINKER_0);
   }
 
   bc_current_stage++;
 
-  // 14 LEDs, 12 iterations with all enabled and 1 reset iteration
-  if (bc_current_stage >= 14 + 12) {
+  // 14 LEDs, 11 iterations with all enabled
+  if (bc_current_stage >= 14 + 7) {
     bc_current_stage = 0;
   }
 }

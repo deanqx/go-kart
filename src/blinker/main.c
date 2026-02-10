@@ -1,7 +1,7 @@
 /*
  * Pinbelegung ist in hal.h zu finden.
- * Timer0 wird für periodische Statusnachricht über CAN genutzt.
- * Timer1 wird für die Blinker LEDs und Bremslicht PWM genutzt.
+ * Timer0 wird für periodische Statusnachricht über CAN und die Blinker LEDs
+ * genutzt. Timer1 wird für das Bremslicht PWM genutzt.
  */
 
 #include "blinker_controller.c"
@@ -16,8 +16,9 @@
 #define CMD_BREAKLIGHT_BIT 0
 #define CMD_BLINKER_BIT 1
 #define CMD_REVERSELIGHT_BIT 2
-static const char PRINT_UART_COMMANDS = '0' - 1;
+static const char PRINT_UART_COMMANDS = 0xff;
 static const uint32_t CAN_ID = 0x00001234;
+static const uint32_t CAN_ID_STATE_MESSAGE = 0x00001235;
 
 static uint8_t light_state = 0;
 static bool send_light_state = false;
@@ -25,22 +26,22 @@ static bool send_light_state = false;
 /// @returns 1 for error and 0 for successful
 uint8_t process_command_from_uart(const char command_char) {
   switch (command_char) {
-  case '0':
+  case '1':
     light_state |= (1 << CMD_BREAKLIGHT_BIT);
     break;
-  case '1':
+  case '2':
     light_state &= ~(1 << CMD_BREAKLIGHT_BIT);
     break;
-  case '2':
+  case '3':
     light_state |= (1 << CMD_BLINKER_BIT);
     break;
-  case '3':
+  case '4':
     light_state &= ~(1 << CMD_BLINKER_BIT);
     break;
-  case '4':
+  case '5':
     light_state |= (1 << CMD_REVERSELIGHT_BIT);
     break;
-  case '5':
+  case '6':
     light_state &= ~(1 << CMD_REVERSELIGHT_BIT);
     break;
   default:
@@ -49,32 +50,30 @@ uint8_t process_command_from_uart(const char command_char) {
     uart_puts("info: UART Befehle:\n");
     uart_puts("info: An  | Aus | Funktion\n");
     uart_puts("info: ----------------------\n");
-    uart_puts("info: '0' | '1'  | Bremslicht\n");
-    uart_puts("info: '2' | '3'  | Blinker\n");
-    uart_puts("info: '4' | '5'  | Rückfahrlicht\n");
+    uart_puts("info: '1' | '2'  | Bremslicht\n");
+    uart_puts("info: '3' | '4'  | Blinker\n");
+    uart_puts("info: '5' | '6'  | Rückfahrlicht\n");
     return 1;
   }
 
   return 0;
 }
 
-void init_timer0(void) {
-  // clear timer on compare match with OCRA
-  TCCR0A = 1 << WGM01;
-  // F_CPU / 1024 = 16 MHz / 1024 = 15625 Hz
-  TCCR0B = 1 << CS02 | 1 << CS00;
-  OCR0A = 255; // Timer0 at 61 Hz
-  TIMSK0 = 1 << OCIE0A;
+void add_timer0_state_message(void) {
+  // Reusing timer0 from Blinker (blinker_controller.h)
+  OCR0B = 100;
+  // enable interrupt for B
+  TIMSK0 |= 1 << OCIE0B;
 }
 
-ISR(TIMER0_COMPA_vect) {
-  static const uint8_t SOFT_PRESCALER = 60; // about 1 Hz
+ISR(TIMER0_COMPB_vect) {
   static uint8_t interrupt_count = 0;
 
   interrupt_count++;
 
+  // about 1 Hz
   // timer frequency / SOFT_PRESCALER = frequency
-  if (interrupt_count == SOFT_PRESCALER) {
+  if (interrupt_count == OCR0A) {
     interrupt_count = 0;
     send_light_state = true;
   }
@@ -83,8 +82,8 @@ ISR(TIMER0_COMPA_vect) {
 void init(void) {
   uart_init();
   hal_init();
-  init_timer0();
-  bc_init_timer1();
+  bc_init_timer0_timer1();
+  add_timer0_state_message();
 
   uart_puts("\ninfo: JCS-BK_1091_GO-KART von Dean Schneider (GYT26)\n");
   uart_puts("info: Blinker-Modul mit CAN-ID: 0x");
@@ -92,7 +91,12 @@ void init(void) {
   uart_puthex((uint8_t)(CAN_ID >> 8 * 2));
   uart_puthex((uint8_t)(CAN_ID >> 8 * 1));
   uart_puthex((uint8_t)(CAN_ID >> 8 * 0));
-  uart_putc('\n');
+  uart_puts("\ninfo: State Nachrichten werden an 0x");
+  uart_puthex((uint8_t)(CAN_ID_STATE_MESSAGE >> 8 * 3));
+  uart_puthex((uint8_t)(CAN_ID_STATE_MESSAGE >> 8 * 2));
+  uart_puthex((uint8_t)(CAN_ID_STATE_MESSAGE >> 8 * 1));
+  uart_puthex((uint8_t)(CAN_ID_STATE_MESSAGE >> 8 * 0));
+  uart_puts(" gesendet.\n");
   process_command_from_uart(PRINT_UART_COMMANDS);
 
   if (!can_init(BITRATE_125_KBPS)) {
@@ -139,14 +143,14 @@ int main(void) {
       process_command_from_uart(command_from_uart);
     } else { // no uart command
       if (!can_get_message(&received_can_message)) {
-        continue;
+        goto continue_main_loop;
       }
 
       uart_puts("info: received command over CAN\n");
 
       if (received_can_message.length != 1) {
         uart_puts("error: DLC does not equal 1\n");
-        continue;
+        goto continue_main_loop;
       }
 
       light_state = received_can_message.data[0];
@@ -175,6 +179,7 @@ int main(void) {
       RESET(LED_REVERSE);
     }
 
+  continue_main_loop:
     if (send_light_state) {
       send_light_state = false;
 
@@ -186,6 +191,7 @@ int main(void) {
           .data = {light_state},
       };
 
+      uart_puts("info: send light_state over CAN\n");
       can_send_message(&light_state_message);
     }
   }
