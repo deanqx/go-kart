@@ -152,7 +152,9 @@ int main(void) {
       uart_putc(command_from_uart);
       uart_putc('\n');
 
-      process_command_from_uart(command_from_uart);
+      if (process_command_from_uart(command_from_uart)) {
+        continue; // error, help is printed inside funktion
+      }
     } else { // no uart command
       if (!can_get_message(&received_can_message)) {
         goto continue_main_loop;
