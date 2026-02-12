@@ -1,4 +1,7 @@
 /build
 /.cache
-/docs/circuit/circuit-backups
+/docs/circuit/*-backups
+/docs/circuit/*.lck
+/docs/circuit/fp-info-cache
+/docs/circuit/#auto_saved_files#
 .~lock.*
