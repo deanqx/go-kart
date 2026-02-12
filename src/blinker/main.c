@@ -20,16 +20,16 @@
 #define LOWER_LIGHT_BIT 2
 
 static const char PRINT_UART_COMMANDS = 0xff;
-static const uint32_t CAN_ID_STATE_MESSAGE = 0x00001235;
+static const uint32_t CAN_ID_STATE_MESSAGE = 0x703;
 
 #if defined(BLINKER_FRONT) && defined(BLINKER_RIGHT)
-static const uint32_t CAN_ID = 0x00001234;
+static const uint32_t CAN_ID = 0x604;
 #elif defined(BLINKER_FRONT) && defined(BLINKER_LEFT)
-static const uint32_t CAN_ID = 0x00001234;
+static const uint32_t CAN_ID = 0x603;
 #elif defined(BLINKER_BACK) && defined(BLINKER_RIGHT)
-static const uint32_t CAN_ID = 0x00001234;
+static const uint32_t CAN_ID = 0x602;
 #else // defined(BLINKER_BACK) && defined(BLINKER_LEFT)
-static const uint32_t CAN_ID = 0x00001234;
+static const uint32_t CAN_ID = 0x601;
 #endif
 
 static uint8_t light_state = 0;
@@ -198,11 +198,18 @@ int main(void) {
       send_light_state = false;
 
       const can_t light_state_message = {
-          .id = 0x200,
+          .id = CAN_ID_STATE_MESSAGE,
           .flags.rtr = false,
           .flags.extended = true,
-          .length = 1,
-          .data = {light_state},
+          .length = 5,
+          .data =
+              {
+                  (uint8_t)(CAN_ID >> 8 * 3),
+                  (uint8_t)(CAN_ID >> 8 * 2),
+                  (uint8_t)(CAN_ID >> 8 * 1),
+                  (uint8_t)(CAN_ID >> 8 * 0),
+                  light_state,
+              },
       };
 
       uart_puts("info: send light_state over CAN\n");
