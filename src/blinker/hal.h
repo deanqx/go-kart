@@ -64,16 +64,15 @@ void hal_init(void) {
          _P(LED_BLINKER_2);
 }
 
-void reset_all_blinker_leds(void) {
+void reset_blinker_leds(void) {
   PORTB &= ~(_P(LED_BLINKER_5) | _P(LED_BLINKER_6) | _P(LED_BLINKER_8) |
              _P(LED_BLINKER_9) | _P(LED_BLINKER_11) | _P(LED_BLINKER_12) |
              _P(LED_BLINKER_13));
 
-  PORTC &= ~(_P(LED_LOWER_LIGHT) | _P(LED_BLINKER_3) | _P(LED_BLINKER_4) |
-             _P(LED_BLINKER_7) | _P(LED_BLINKER_10));
+  PORTC &= ~(_P(LED_BLINKER_3) | _P(LED_BLINKER_4) | _P(LED_BLINKER_7) |
+             _P(LED_BLINKER_10));
 
-  PORTD &= ~(_P(INTERNAL_LED_LA) | _P(LED_BLINKER_0) | _P(LED_BLINKER_1) |
-             _P(LED_BLINKER_2));
+  PORTD &= ~(_P(LED_BLINKER_0) | _P(LED_BLINKER_1) | _P(LED_BLINKER_2));
 }
 
 #endif

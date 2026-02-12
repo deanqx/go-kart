@@ -55,7 +55,7 @@ void bc_blinker_off(void) {
   // reset blinker
   bc_current_stage = 0;
   bc_interrupt_count = 0;
-  reset_all_blinker_leds();
+  reset_blinker_leds();
 }
 
 // @returns true when blinker is enabled
@@ -122,8 +122,8 @@ ISR(TIMER0_COMPA_vect) {
   }
 
   if (bc_current_stage == 14 + (7 - 1)) {
-    reset_all_blinker_leds();
-    SET(LED_BLINKER_0);
+    reset_blinker_leds();
+    RESET(LED_BLINKER_0);
   }
 
   bc_current_stage++;
