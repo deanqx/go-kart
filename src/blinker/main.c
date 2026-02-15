@@ -15,9 +15,10 @@
 #include <stdint.h>
 #include <util/delay.h>
 
-#define UPPER_LIGHT_BIT 0
+#define LOWER_LIGHT_BIT 0
 #define BLINKER_BIT 1
-#define LOWER_LIGHT_BIT 2
+#define UPPER_WEAK_LIGHT_BIT 2
+#define UPPER_FULL_LIGHT_BIT 3
 
 static const char PRINT_UART_COMMANDS = 0xff;
 static const uint32_t CAN_ID_STATE_MESSAGE = 0x703;
@@ -39,32 +40,42 @@ static bool send_light_state = false;
 uint8_t process_command_from_uart(const char command_char) {
   switch (command_char) {
   case '1':
-    light_state |= (1 << UPPER_LIGHT_BIT);
-    break;
-  case '2':
-    light_state &= ~(1 << UPPER_LIGHT_BIT);
-    break;
-  case '3':
     light_state |= (1 << BLINKER_BIT);
     break;
-  case '4':
+  case '2':
     light_state &= ~(1 << BLINKER_BIT);
     break;
-  case '5':
+  case '3':
     light_state |= (1 << LOWER_LIGHT_BIT);
     break;
-  case '6':
+  case '4':
     light_state &= ~(1 << LOWER_LIGHT_BIT);
+    break;
+  case '5':
+    light_state |= (1 << UPPER_WEAK_LIGHT_BIT);
+    break;
+  case '6':
+    light_state |= (1 << UPPER_FULL_LIGHT_BIT);
+    break;
+  case '7':
+    light_state &= ~(1 << UPPER_WEAK_LIGHT_BIT);
+    light_state &= ~(1 << UPPER_FULL_LIGHT_BIT);
     break;
   default:
     uart_puts("error: unknown command\n");
   case PRINT_UART_COMMANDS:
     uart_puts("info: UART Befehle:\n");
-    uart_puts("info: An  | Aus | Funktion\n");
-    uart_puts("info: ----------------------\n");
-    uart_puts("info: '1' | '2'  | Bremslicht\n");
-    uart_puts("info: '3' | '4'  | Blinker\n");
-    uart_puts("info: '5' | '6'  | Rückfahrlicht\n");
+    uart_puts("info: an='1', aus='2': Blinker\n");
+#ifdef BLINKER_FRONT
+    uart_puts("info: an='3', aus='4': Tagfahrlicht\n");
+    uart_puts("info: '5': Abblendlicht\n");
+    uart_puts("info: '6': Fernlicht\n");
+#else // BLINKER_BACK
+    uart_puts("info: an='3', aus='4': Rueckfahrlicht\n");
+    uart_puts("info: '5': Ruecklicht\n");
+    uart_puts("info: '6': Bremslicht\n");
+#endif
+    uart_puts("info: '7': kein oberes Licht\n");
     return 1;
   }
 
@@ -153,7 +164,7 @@ int main(void) {
       uart_putc('\n');
 
       if (process_command_from_uart(command_from_uart)) {
-        continue; // error, help is printed inside funktion
+        continue; // help is printed inside previous called funktion
       }
     } else { // no uart command
       if (!can_get_message(&received_can_message)) {
@@ -175,10 +186,10 @@ int main(void) {
     uart_puthex(light_state);
     uart_putc('\n');
 
-    if (light_state & (1 << UPPER_LIGHT_BIT)) {
-      bc_upper_light_on();
+    if (light_state & (1 << LOWER_LIGHT_BIT)) {
+      SET(LED_LOWER_LIGHT);
     } else {
-      bc_upper_light_off();
+      RESET(LED_LOWER_LIGHT);
     }
 
     if (light_state & (1 << BLINKER_BIT)) {
@@ -187,10 +198,12 @@ int main(void) {
       bc_blinker_off();
     }
 
-    if (light_state & (1 << LOWER_LIGHT_BIT)) {
-      SET(LED_LOWER_LIGHT);
+    if (light_state & (1 << UPPER_WEAK_LIGHT_BIT)) {
+      bc_upper_weak_light();
+    } else if (light_state & (1 << UPPER_FULL_LIGHT_BIT)) {
+      bc_upper_full_light();
     } else {
-      RESET(LED_LOWER_LIGHT);
+      bc_upper_light_off();
     }
 
   continue_main_loop:

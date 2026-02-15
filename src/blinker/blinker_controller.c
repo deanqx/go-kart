@@ -14,11 +14,6 @@
 static uint8_t bc_current_stage = 0;
 static uint8_t bc_interrupt_count = 0;
 
-/// Abblend-/Rücklicht anschalten und Fern-/Bremsenlicht ausschalten
-void bc_upper_light_off(void) {
-  OCR1B = 251; // 25 % brightness
-}
-
 /// Have to enable global interrupts with sei()
 /// See project documentation for more details about calculation
 void bc_init_timer0_timer1(void) {
@@ -35,12 +30,21 @@ void bc_init_timer0_timer1(void) {
   TCCR1A = 1 << COM1B1 | 1 << WGM11 | 1 << WGM10;
   // Timer1 clock: no prescaling, 16 MHz / 1023 = 15640 Hz
   TCCR1B = 1 << WGM12 | 1 << CS10;
-  bc_upper_light_off();
 }
 
 /// Fern-/Bremsenlicht anschalten und Abblend-/Rücklicht ausschalten
-void bc_upper_light_on(void) {
+void bc_upper_full_light(void) {
   OCR1B = 1023; // 100 % brightness
+}
+
+/// Abblend-/Rücklicht anschalten und Fern-/Bremsenlicht ausschalten
+void bc_upper_weak_light(void) {
+  OCR1B = 251; // 25 % brightness
+}
+
+/// Fern-/Bremsenlicht ausschalten und Abblend-/Rücklicht ausschalten
+void bc_upper_light_off(void) {
+  OCR1B = 0; // 0 % brightness
 }
 
 void bc_blinker_on(void) {
