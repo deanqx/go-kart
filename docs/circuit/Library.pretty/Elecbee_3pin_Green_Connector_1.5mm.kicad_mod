@@ -1,0 +1,158 @@
+(footprint "Elecbee_3pin_Green_Connector_1.5mm"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(descr "3-pin CPU fan Through hole pin header, see http://www.formfactors.org/developer%5Cspecs%5Crev1_2_public.pdf")
+	(tags "pin header 3-pin CPU fan")
+	(property "Reference" "REF**"
+		(at 13 -3 0)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "b93773a7-c2cd-4ac4-9839-7bcb88fd0f98")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify left)
+		)
+	)
+	(property "Value" "green_conn_1.5mm"
+		(at 4.5 5.5 0)
+		(layer "F.Fab")
+		(uuid "932c0585-bbae-435e-8648-a77b15b0c863")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "d4b9e985-207d-4245-b61b-cd653c38057e")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "f4f6cf64-ed59-4575-a372-609db2b531a6")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(fp_line
+		(start 0 -2)
+		(end 0 -6.5)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "2d5d1514-295a-45ba-bc82-0da16721be73")
+	)
+	(fp_line
+		(start 5 -2)
+		(end 5 -6.5)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "a30711e2-5fdc-4e8c-9884-7dbe391b4acb")
+	)
+	(fp_line
+		(start 10 -2)
+		(end 10 -6.5)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.SilkS")
+		(uuid "5eae7300-6bcd-4bd4-91e5-1714a2b339b3")
+	)
+	(fp_rect
+		(start -2.5 -7.5)
+		(end 12.5 2.5)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "e0285d88-2642-4439-a907-8bf5976dd0cc")
+	)
+	(fp_rect
+		(start -3 -8)
+		(end 13 3)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "42c94f2c-29ba-476f-8a33-79f3d6687fd3")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 4.5 4 0)
+		(layer "F.Fab")
+		(uuid "f56896de-fad4-428b-8754-5ac27106e882")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" thru_hole circle
+		(at 0 0)
+		(size 3.5 3.5)
+		(drill 2)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "68e89d5b-2ae3-40e1-b513-9dd73d488aed")
+	)
+	(pad "2" thru_hole circle
+		(at 5 0)
+		(size 3.5 3.5)
+		(drill 2)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "1af49f40-2dba-4758-ab59-cfc98e8445e5")
+	)
+	(pad "3" thru_hole circle
+		(at 10 0)
+		(size 3.5 3.5)
+		(drill 2)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "e51883f0-d0d2-4abb-90d4-5d95b90929bb")
+	)
+	(embedded_fonts no)
+	(model "${KICAD9_3DMODEL_DIR}/Connector.3dshapes/FanPinHeader_1x03_P2.54mm_Vertical.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)
