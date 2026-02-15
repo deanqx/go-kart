@@ -25,8 +25,8 @@
 #include <stdint.h>
 
 // these macros are used to choose between usart0 or usart1
-#define CD_UART_PUTC uart1_putc
-#define CD_UART_PUTS uart1_puts
+#define CD_UART_PUTC uart0_putc
+#define CD_UART_PUTS uart0_puts
 
 typedef enum {
   GEAR_NEUTRAL,

@@ -21,16 +21,16 @@
 #define UPPER_FULL_LIGHT_BIT 3
 
 static const char PRINT_UART_COMMANDS = 0xff;
-static const uint32_t CAN_ID_STATE_MESSAGE = 0x703;
+static const uint32_t CAN_ID_TX_STATE = 0x703;
 
 #if defined(BLINKER_FRONT) && defined(BLINKER_RIGHT)
-static const uint32_t CAN_ID = 0x604;
+static const uint32_t CAN_ID_RX_COMMAND = 0x604;
 #elif defined(BLINKER_FRONT) && defined(BLINKER_LEFT)
-static const uint32_t CAN_ID = 0x603;
+static const uint32_t CAN_ID_RX_COMMAND = 0x603;
 #elif defined(BLINKER_BACK) && defined(BLINKER_RIGHT)
-static const uint32_t CAN_ID = 0x602;
+static const uint32_t CAN_ID_RX_COMMAND = 0x602;
 #else // defined(BLINKER_BACK) && defined(BLINKER_LEFT)
-static const uint32_t CAN_ID = 0x601;
+static const uint32_t CAN_ID_RX_COMMAND = 0x601;
 #endif
 
 static uint8_t light_state = 0;
@@ -110,15 +110,15 @@ void init(void) {
 
   uart_puts("\ninfo: JCS-BK_1091_GO-KART von Dean Schneider (GYT26)\n");
   uart_puts("info: Blinker-Modul mit CAN-ID: 0x");
-  uart_puthex((uint8_t)(CAN_ID >> 8 * 3));
-  uart_puthex((uint8_t)(CAN_ID >> 8 * 2));
-  uart_puthex((uint8_t)(CAN_ID >> 8 * 1));
-  uart_puthex((uint8_t)(CAN_ID >> 8 * 0));
+  uart_puthex((uint8_t)(CAN_ID_RX_COMMAND >> 8 * 3));
+  uart_puthex((uint8_t)(CAN_ID_RX_COMMAND >> 8 * 2));
+  uart_puthex((uint8_t)(CAN_ID_RX_COMMAND >> 8 * 1));
+  uart_puthex((uint8_t)(CAN_ID_RX_COMMAND >> 8 * 0));
   uart_puts("\ninfo: State Nachrichten werden an 0x");
-  uart_puthex((uint8_t)(CAN_ID_STATE_MESSAGE >> 8 * 3));
-  uart_puthex((uint8_t)(CAN_ID_STATE_MESSAGE >> 8 * 2));
-  uart_puthex((uint8_t)(CAN_ID_STATE_MESSAGE >> 8 * 1));
-  uart_puthex((uint8_t)(CAN_ID_STATE_MESSAGE >> 8 * 0));
+  uart_puthex((uint8_t)(CAN_ID_TX_STATE >> 8 * 3));
+  uart_puthex((uint8_t)(CAN_ID_TX_STATE >> 8 * 2));
+  uart_puthex((uint8_t)(CAN_ID_TX_STATE >> 8 * 1));
+  uart_puthex((uint8_t)(CAN_ID_TX_STATE >> 8 * 0));
   uart_puts(" gesendet.\n");
   process_command_from_uart(PRINT_UART_COMMANDS);
 
@@ -132,10 +132,10 @@ void init(void) {
   }
 
   can_filter_t can_filter = {
-      .id = CAN_ID,
+      .id = CAN_ID_RX_COMMAND,
       .mask = 0x1FFFFFFF,    // only accept exactly this ID
-      .flags.extended = 0x3, // filter with extended id
-      .flags.rtr = 0x2,      // receive both RTR and normal
+      .flags.extended = 0x3, // receive with extended id
+      .flags.rtr = 0,        // only receive normal messaages (no RTR)
   };
 
   if (!can_set_filter(0, &can_filter)) {
@@ -211,16 +211,16 @@ int main(void) {
       send_light_state = false;
 
       const can_t light_state_message = {
-          .id = CAN_ID_STATE_MESSAGE,
+          .id = CAN_ID_TX_STATE,
           .flags.rtr = false,
           .flags.extended = true,
           .length = 5,
           .data =
               {
-                  (uint8_t)(CAN_ID >> 8 * 3),
-                  (uint8_t)(CAN_ID >> 8 * 2),
-                  (uint8_t)(CAN_ID >> 8 * 1),
-                  (uint8_t)(CAN_ID >> 8 * 0),
+                  (uint8_t)(CAN_ID_RX_COMMAND >> 8 * 3),
+                  (uint8_t)(CAN_ID_RX_COMMAND >> 8 * 2),
+                  (uint8_t)(CAN_ID_RX_COMMAND >> 8 * 1),
+                  (uint8_t)(CAN_ID_RX_COMMAND >> 8 * 0),
                   light_state,
               },
       };
@@ -229,4 +229,7 @@ int main(void) {
       can_send_message(&light_state_message);
     }
   }
+
+emergency_loop:
+  goto emergency_loop;
 }

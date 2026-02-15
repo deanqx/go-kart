@@ -2605,6 +2605,7 @@ void uart1_putc(char data) {
 //******************************************************************
 #if defined(__AVR_AT90CAN32__)
 #elif defined(__AVR_ATmega16M1__)
+#endif
 #ifdef USART_NO_ABI_BREAKING_PREMATURES
 	char uart0_getc(void)
 	{
