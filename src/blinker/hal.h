@@ -13,7 +13,12 @@
 
 #include <avr/io.h>
 
+// Beispiel: PORTC PC6 => C, 6
+
 // --- PORTB ---
+#define ISP_SCK B, 1
+#define ISP_MOSI B, 2
+#define ISP_MISO B, 3
 #define LED_BLINKER_5 B, 6
 #define LED_BLINKER_6 B, 5
 #define LED_BLINKER_8 B, 4

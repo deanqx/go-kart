@@ -6976,7 +6976,7 @@
 		)
 	)
 	(global_label "PG2_SW_GearDown"
-		(shape output)
+		(shape input)
 		(at 88.9 58.42 180)
 		(fields_autoplaced yes)
 		(effects
@@ -7020,7 +7020,7 @@
 		)
 	)
 	(global_label "PD2_RXD1"
-		(shape output)
+		(shape input)
 		(at 88.9 69.85 180)
 		(fields_autoplaced yes)
 		(effects
@@ -7064,7 +7064,7 @@
 		)
 	)
 	(global_label "PD4_LED_GearUp"
-		(shape input)
+		(shape output)
 		(at 88.9 66.04 180)
 		(fields_autoplaced yes)
 		(effects
@@ -7086,7 +7086,7 @@
 		)
 	)
 	(global_label "PE3_SW_BlinkerL"
-		(shape output)
+		(shape input)
 		(at 135.89 97.79 0)
 		(fields_autoplaced yes)
 		(effects
@@ -7108,7 +7108,7 @@
 		)
 	)
 	(global_label "{slash}PC2_SW_Start"
-		(shape input)
+		(shape output)
 		(at 127 60.96 0)
 		(fields_autoplaced yes)
 		(effects
@@ -7130,7 +7130,7 @@
 		)
 	)
 	(global_label "PC0_SW_BlinkerR"
-		(shape output)
+		(shape input)
 		(at 88.9 54.61 180)
 		(fields_autoplaced yes)
 		(effects
@@ -7284,7 +7284,7 @@
 		)
 	)
 	(global_label "PD2_RXD1"
-		(shape input)
+		(shape output)
 		(at 121.92 156.21 180)
 		(fields_autoplaced yes)
 		(effects
@@ -7328,7 +7328,7 @@
 		)
 	)
 	(global_label "PE4_LED_LightSwitch"
-		(shape input)
+		(shape output)
 		(at 97.79 105.41 180)
 		(fields_autoplaced yes)
 		(effects
@@ -7460,7 +7460,7 @@
 		)
 	)
 	(global_label "PE6_LED_Warnblinker"
-		(shape input)
+		(shape output)
 		(at 97.79 109.22 180)
 		(fields_autoplaced yes)
 		(effects
@@ -7482,7 +7482,7 @@
 		)
 	)
 	(global_label "PE2_LED_BlinkerL"
-		(shape input)
+		(shape output)
 		(at 97.79 101.6 180)
 		(fields_autoplaced yes)
 		(effects
@@ -7504,7 +7504,7 @@
 		)
 	)
 	(global_label "PE7_SW_Warnblinker"
-		(shape output)
+		(shape input)
 		(at 135.89 105.41 0)
 		(fields_autoplaced yes)
 		(effects
@@ -7526,7 +7526,7 @@
 		)
 	)
 	(global_label "{slash}PG1_SW_Reverse"
-		(shape input)
+		(shape output)
 		(at 127 64.77 0)
 		(fields_autoplaced yes)
 		(effects
@@ -7570,7 +7570,7 @@
 		)
 	)
 	(global_label "PC3_LED_BlinkerR"
-		(shape input)
+		(shape output)
 		(at 88.9 50.8 180)
 		(fields_autoplaced yes)
 		(effects
@@ -7834,7 +7834,7 @@
 		)
 	)
 	(global_label "PE5_SW_LightSwitch"
-		(shape output)
+		(shape input)
 		(at 135.89 101.6 0)
 		(fields_autoplaced yes)
 		(effects
@@ -7856,7 +7856,7 @@
 		)
 	)
 	(global_label "PG3_LED_GearDown"
-		(shape input)
+		(shape output)
 		(at 88.9 78.74 180)
 		(fields_autoplaced yes)
 		(effects
@@ -7878,7 +7878,7 @@
 		)
 	)
 	(global_label "PB4_OC2A"
-		(shape output)
+		(shape input)
 		(at 62.23 179.07 180)
 		(fields_autoplaced yes)
 		(effects
@@ -7922,7 +7922,7 @@
 		)
 	)
 	(global_label "PG0_SW_GearUp"
-		(shape output)
+		(shape input)
 		(at 88.9 62.23 180)
 		(fields_autoplaced yes)
 		(effects
