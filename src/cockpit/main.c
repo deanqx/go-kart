@@ -1,6 +1,9 @@
 /*
+ * Pinbelegung ist in hal.h zu finden.
  * uart0 für Steuerung des Displays.
  * uart1 für Ausgabe über Bluetooth.
+ *
+ * Author: Dean Schneider (GYT26)
  */
 
 #include "can.h"
