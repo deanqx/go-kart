@@ -6,7 +6,7 @@
 	(paper "A4")
 	(title_block
 		(title "JCS-BK1091_GO-KART_Cockpitplatine")
-		(date "2026-02-12")
+		(date "2026-02-16")
 		(rev "1")
 	)
 	(lib_symbols
@@ -10915,10 +10915,9 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "523b8eb6-a345-42ba-bada-68e4525e9dd4")
 		(property "Reference" "P1"
-			(at 30.48 67.6274 90)
+			(at 19.05 66.04 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10927,7 +10926,7 @@
 			)
 		)
 		(property "Value" "Power"
-			(at 30.48 70.1674 90)
+			(at 19.05 68.58 90)
 			(effects
 				(font
 					(size 1.27 1.27)
