@@ -2569,20 +2569,23 @@
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "D"
-				(at 0 2.54 0)
+			(property "Reference" "P1"
+				(at 0 -2.54 90)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
+					(justify right)
 				)
 			)
 			(property "Value" "LED"
-				(at 0 -2.54 0)
+				(at -2.8574 -3.81 90)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
+					(justify right)
+					(hide yes)
 				)
 			)
 			(property "Footprint" ""
@@ -2642,30 +2645,6 @@
 			(symbol "LED_0_1"
 				(polyline
 					(pts
-						(xy -3.048 -0.762) (xy -4.572 -2.286) (xy -3.81 -2.286) (xy -4.572 -2.286) (xy -4.572 -1.524)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -1.778 -0.762) (xy -3.302 -2.286) (xy -2.54 -2.286) (xy -3.302 -2.286) (xy -3.302 -1.524)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
 						(xy -1.27 0) (xy 1.27 0)
 					)
 					(stroke
@@ -2682,6 +2661,30 @@
 					)
 					(stroke
 						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.143 -2.032) (xy -2.667 -3.556) (xy -1.905 -3.556) (xy -2.667 -3.556) (xy -2.667 -2.794)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.127 -2.032) (xy -1.397 -3.556) (xy -0.635 -3.556) (xy -1.397 -3.556) (xy -1.397 -2.794)
+					)
+					(stroke
+						(width 0)
 						(type default)
 					)
 					(fill
@@ -3332,6 +3335,192 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "LED_1"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "P1"
+				(at 0 -2.54 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify right)
+				)
+			)
+			(property "Value" "LED"
+				(at -2.8574 -3.81 90)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify right)
+					(hide yes)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Light emitting diode"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Sim.Pins" "1=K 2=A"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "LED diode"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "LED* LED_SMD:* LED_THT:*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "LED_1_0_1"
+				(polyline
+					(pts
+						(xy -1.27 0) (xy 1.27 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 -1.27) (xy -1.27 1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.143 -2.032) (xy -2.667 -3.556) (xy -1.905 -3.556) (xy -2.667 -3.556) (xy -2.667 -2.794)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.127 -2.032) (xy -1.397 -3.556) (xy -0.635 -3.556) (xy -1.397 -3.556) (xy -1.397 -2.794)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 -1.27) (xy 1.27 1.27) (xy -1.27 0) (xy 1.27 -1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "LED_1_1_1"
+				(pin passive line
+					(at -3.81 0 0)
+					(length 2.54)
+					(name "K"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 3.81 0 180)
+					(length 2.54)
+					(name "A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Switch:SW_MEC_5E"
 			(pin_names
 				(offset 1.016)
@@ -3340,21 +3529,21 @@
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "SW"
-				(at 0.635 5.715 0)
+			(property "Reference" "S1"
+				(at 0 7.62 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left)
 				)
 			)
 			(property "Value" "SW_MEC_5E"
-				(at 0 -3.175 0)
+				(at 0 7.62 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
+					(hide yes)
 				)
 			)
 			(property "Footprint" ""
@@ -3440,7 +3629,43 @@
 				)
 				(polyline
 					(pts
+						(xy -0.635 5.715) (xy -0.635 6.35)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
 						(xy 0 3.81) (xy 0 5.588)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.635 6.35) (xy -0.635 6.35)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.635 5.715) (xy 0.635 6.35)
 					)
 					(stroke
 						(width 0)
@@ -8819,23 +9044,22 @@
 		)
 	)
 	(symbol
+		(lib_name "LED_1")
 		(lib_id "Device:LED")
 		(at 34.29 175.26 90)
 		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
+		(exclude_from_sim yes)
+		(in_bom no)
 		(on_board no)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "0344c62d-b28f-4c3c-a9c2-4520173ac53c")
-		(property "Reference" "D1"
-			(at 38.1 175.5774 90)
+		(property "Reference" "P1"
+			(at 36.83 173.99 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify right)
-				(hide yes)
 			)
 		)
 		(property "Value" "LED"
@@ -8893,7 +9117,7 @@
 		(instances
 			(project ""
 				(path "/e785e5e4-6da9-4e03-ba54-b62675208098"
-					(reference "D1")
+					(reference "P1")
 					(unit 1)
 				)
 			)
@@ -9322,18 +9546,17 @@
 		(on_board no)
 		(dnp no)
 		(uuid "1cd3c0ce-d70b-470a-ab78-8061ce4560e7")
-		(property "Reference" "R3"
-			(at 69.85 173.9899 0)
+		(property "Reference" "R2"
+			(at 69.85 173.99 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
-				(hide yes)
 			)
 		)
 		(property "Value" "3k"
-			(at 69.342 175.26 0)
+			(at 69.85 176.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9377,7 +9600,7 @@
 		(instances
 			(project "go-kart_cockpit"
 				(path "/e785e5e4-6da9-4e03-ba54-b62675208098"
-					(reference "R3")
+					(reference "R2")
 					(unit 1)
 				)
 			)
@@ -10841,7 +11064,7 @@
 		(dnp no)
 		(uuid "523b8eb6-a345-42ba-bada-68e4525e9dd4")
 		(property "Reference" "P1"
-			(at 19.05 66.04 90)
+			(at 29.21 66.04 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10849,16 +11072,17 @@
 				(justify right)
 			)
 		)
-		(property "Value" "Power"
-			(at 19.05 68.58 90)
+		(property "Value" "LED"
+			(at 30.48 70.1674 90)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify right)
+				(hide yes)
 			)
 		)
-		(property "Footprint" "LED_THT:LED_D3.0mm_Horizontal_O1.27mm_Z6.0mm"
+		(property "Footprint" ""
 			(at 26.67 67.31 0)
 			(effects
 				(font
@@ -11322,15 +11546,13 @@
 		(in_bom yes)
 		(on_board no)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "7d5db22c-4f4f-4086-8d99-324a2e032a89")
-		(property "Reference" "SW1"
-			(at 58.42 160.02 0)
+		(property "Reference" "S1"
+			(at 58.42 162.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(hide yes)
 			)
 		)
 		(property "Value" "SW_MEC_5E"
@@ -11384,7 +11606,7 @@
 		(instances
 			(project ""
 				(path "/e785e5e4-6da9-4e03-ba54-b62675208098"
-					(reference "SW1")
+					(reference "S1")
 					(unit 1)
 				)
 			)
@@ -13126,23 +13348,22 @@
 		(lib_id "Device:R")
 		(at 34.29 167.64 0)
 		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
+		(exclude_from_sim yes)
+		(in_bom no)
 		(on_board no)
 		(dnp no)
 		(uuid "ef2266e3-2ef7-4e67-b20f-3db03011c8be")
-		(property "Reference" "R2"
-			(at 36.83 166.3699 0)
+		(property "Reference" "R1"
+			(at 36.83 166.37 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 				(justify left)
-				(hide yes)
 			)
 		)
-		(property "Value" "100-120"
-			(at 36.322 167.64 0)
+		(property "Value" "120"
+			(at 36.83 168.91 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13186,7 +13407,7 @@
 		(instances
 			(project ""
 				(path "/e785e5e4-6da9-4e03-ba54-b62675208098"
-					(reference "R2")
+					(reference "R1")
 					(unit 1)
 				)
 			)
