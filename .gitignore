@@ -2,6 +2,7 @@
 /.cache
 /docs/circuit/*-backups
 /docs/circuit/*.lck
+/docs/circuit/gerber-files
 /docs/circuit/fp-info-cache
 /docs/circuit/#auto_saved_files#
 .~lock.*
