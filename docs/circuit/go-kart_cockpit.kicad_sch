@@ -11936,7 +11936,7 @@
 				)
 			)
 		)
-		(property "Value" "100"
+		(property "Value" "330"
 			(at 42.037 34.417 90)
 			(effects
 				(font
@@ -13304,7 +13304,7 @@
 				)
 			)
 		)
-		(property "Value" "100"
+		(property "Value" "330"
 			(at 42.037 26.797 90)
 			(effects
 				(font
