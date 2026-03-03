@@ -20,11 +20,12 @@
 #define ISP_MOSI B, 2
 #define ISP_MISO B, 3
 #define HORN_PWM B, 4
+/// LA = low active
+#define SW_MOTOR_START_LA B, 5
+#define SW_MOTOR_REVERSE_LA B, 7
 
 // --- PORTC ---
-#define IN_BLINKER_RIGHT C, 0
-/// low active
-#define IN_MOTOR_START_LA C, 2
+#define SW_BLINKER_RIGHT C, 0
 #define LED_BLINKER_RIGHT C, 3
 
 // --- PORTD ---
@@ -36,17 +37,16 @@
 #define UART0_RX_DISPLAY E, 0
 #define UART0_TX_DISPLAY E, 1
 #define LED_BLINKER_LEFT E, 2
-#define IN_BLINKER_LEFT E, 3
+#define SW_BLINKER_LEFT E, 3
 #define LED_LIGHT_SWITCH E, 4
-#define IN_LIGHT_SWITCH E, 5
+#define SW_LIGHT_SWITCH E, 5
+// or horn
 #define LED_WARNBLINKER E, 6
-#define IN_WARNBLINKER E, 7
+#define SW_WARNBLINKER E, 7
 
 // --- PORTG ---
-#define IN_GEAR_UP G, 0
-/// low active
-#define IN_MOTOR_REVERSE_LA G, 1
-#define IN_GEAR_DOWN G, 2
+#define SW_GEAR_UP G, 0
+#define SW_GEAR_DOWN G, 2
 #define LED_GEAR_DOWN G, 3
 
 #define _SET2(port, bit) PORT##port |= (1 << bit)
@@ -66,8 +66,8 @@
 
 void hal_init(void) {
   // enable pull up resistors
-  SET(IN_MOTOR_START_LA);
-  SET(IN_MOTOR_REVERSE_LA);
+  SET(SW_MOTOR_START_LA);
+  SET(SW_MOTOR_REVERSE_LA);
 
   // set output pins
   DDRC = _P(LED_BLINKER_RIGHT);
