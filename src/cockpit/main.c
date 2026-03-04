@@ -135,7 +135,7 @@ int main(void) {
   init();
   sei();
 
-  // test_display();
+  test_display();
 
   while (true) {
     // --- Einlesen ---
