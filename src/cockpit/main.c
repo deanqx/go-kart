@@ -131,11 +131,47 @@ void test_display(void) {
   }
 }
 
+typedef enum {
+  STOP,
+  FORWARD,
+  REVERSE,
+} MotorState;
+
 int main(void) {
   init();
   sei();
 
-  test_display();
+  // test_display();
+  MotorState motor_state;
+  bool blinker_right;
+
+  while (true) {
+    // --- Einlesen ---
+    if (GET(SW_MOTOR_START_LA)) {
+      if (GET(SW_MOTOR_REVERSE_LA)) {
+        motor_state = STOP;
+      } else {
+        motor_state = REVERSE;
+      }
+    } else {
+      if (GET(SW_MOTOR_REVERSE_LA)) {
+        motor_state = FORWARD;
+      } else {
+        motor_state = STOP; // error
+      }
+    }
+
+    blinker_right = GET(SW_BLINKER_RIGHT);
+
+    // --- Verarbeiten ---
+
+    // --- Ausgeben ---
+    if (blinker_right && motor_state != STOP) {
+      SET(HORN_PWM);
+    } else {
+      RESET(HORN_PWM);
+    }
+  }
 
   while (true) {
     // --- Einlesen ---

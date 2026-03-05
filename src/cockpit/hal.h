@@ -50,12 +50,14 @@
 #define LED_GEAR_DOWN G, 3
 
 #define _SET2(port, bit) PORT##port |= (1 << bit)
+#define _GET2(port, bit) ((PIN##port >> bit) & 1)
 #define _RESET2(port, bit) PORT##port &= ~(1 << bit)
 #define _TOGGLE2(port, bit) PORT##port ^= (1 << bit)
 #define _SET_INPUT2(port, bit) DDR##port |= (1 << bit)
 #define _SET_OUTPUT2(port, bit) DDR##port |= (1 << bit)
 
 #define SET(port_comma_bit) _SET2(port_comma_bit)
+#define GET(port_comma_bit) _GET2(port_comma_bit)
 #define RESET(port_comma_bit) _RESET2(port_comma_bit)
 #define TOGGLE(port_comma_bit) _TOGGLE2(port_comma_bit)
 #define SET_INPUT(port_comma_bit) _SET_INPUT2(port_comma_bit)
@@ -70,6 +72,7 @@ void hal_init(void) {
   SET(SW_MOTOR_REVERSE_LA);
 
   // set output pins
+  DDRB = _P(HORN_PWM);
   DDRC = _P(LED_BLINKER_RIGHT);
   DDRD = _P(UART1_TX) | _P(LED_GEAR_UP);
   DDRE = _P(UART0_TX_DISPLAY) | _P(LED_BLINKER_LEFT) | _P(LED_LIGHT_SWITCH) |
