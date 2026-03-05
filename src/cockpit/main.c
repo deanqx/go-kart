@@ -12,6 +12,7 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 #include <avr/iocan32.h>
+#include <stdint.h>
 #include <util/delay.h>
 
 #define COCKPIT_DISPLAY_IMPLEMENTATION
@@ -60,14 +61,81 @@ uint8_t process_command_from_uart(const char command_char) {
   return 1;
 }
 
+#define TIMER0_SOFT_DIVISION 4
+
 ISR(TIMER0_COMP_vect) {
+  static uint8_t interrupt_count = 0;
+
+  if (interrupt_count < TIMER0_SOFT_DIVISION) {
+    interrupt_count++;
+    return;
+  }
+  interrupt_count = 0;
+
+  static bool previous_blinker_left = false;
+  static bool previous_light_switch = false;
+  static bool previous_gear_up = false;
+  static bool previous_gear_down = false;
+  static bool previous_blinker_right = false;
+
   // --- Einlesen ---
-  blinker_left = GET(SW_BLINKER_LEFT);
-  light_switch = GET(SW_LIGHT_SWITCH);
-  horn = GET(SW_WARNBLINKER_HORN);
-  gear_up = GET(SW_GEAR_UP);
-  gear_down = GET(SW_GEAR_DOWN);
-  blinker_right = GET(SW_BLINKER_RIGHT);
+  const bool current_blinker_left = GET(SW_BLINKER_LEFT);
+  const bool current_light_switch = GET(SW_LIGHT_SWITCH);
+  const bool current_gear_up = GET(SW_GEAR_UP);
+  const bool current_gear_down = GET(SW_GEAR_DOWN);
+  const bool current_blinker_right = GET(SW_BLINKER_RIGHT);
+
+  // --- Verarbeiten ---
+  if (current_blinker_left && !previous_blinker_left) {
+    // button pressed
+    previous_blinker_left = true;
+    blinker_left = !blinker_left;
+  } else if (!current_blinker_left && previous_blinker_left) {
+    // button released
+    previous_blinker_left = false;
+  } // current == previous -> nothing has changed
+
+  if (current_light_switch && !previous_light_switch) {
+    // button pressed
+    previous_light_switch = true;
+    SET(LED_LIGHT_SWITCH);
+  } else if (!current_light_switch && previous_light_switch) {
+    // button released
+    previous_light_switch = false;
+    RESET(LED_LIGHT_SWITCH);
+    light_switch = true; // is set to false when processed
+  } // current == previous -> nothing has changed
+
+  if (current_gear_up && !previous_gear_up) {
+    // button pressed
+    previous_gear_up = true;
+    SET(LED_GEAR_UP);
+  } else if (!current_gear_up && previous_gear_up) {
+    // button released
+    previous_gear_up = false;
+    RESET(LED_GEAR_UP);
+    gear_up = true; // is set to false when processed
+  } // current == previous -> nothing has changed
+
+  if (current_gear_down && !previous_gear_down) {
+    // button pressed
+    previous_gear_down = true;
+    SET(LED_GEAR_DOWN);
+  } else if (!current_gear_down && previous_gear_down) {
+    // button released
+    previous_gear_down = false;
+    RESET(LED_GEAR_DOWN);
+    gear_down = true; // is set to false when processed
+  } // current == previous -> nothing has changed
+
+  if (current_blinker_right && !previous_blinker_right) {
+    // button pressed
+    previous_blinker_left = true;
+    blinker_right = !blinker_right;
+  } else if (!current_blinker_right && previous_blinker_right) {
+    // button released
+    previous_blinker_right = false;
+  } // current == previous -> nothing has changed
 }
 
 void init(void) {
@@ -99,13 +167,15 @@ void init(void) {
     }
   }
 
+  // # configure timer for toggle buttons
   // clear timer value on compare match
   // and set prescaler to 1024: 16 MHz / 1024 = 15625 Hz
   TCCR0A = 1 << WGM01 | 1 << CS02 | 1 << CS00;
   // enable interrupt on compare match with OCR0A
   TIMSK0 = 1 << OCIE0A;
-  // 15625 Hz / 156 = 100.16 Hz
-  OCR0A = 156;
+  // 15625 Hz / 255 = 61.27 Hz
+  OCR0A = 255;
+  // with a software division of 4: Timer0 at 15.32 Hz
 }
 
 void test_display(void) {
@@ -188,19 +258,18 @@ int main(void) {
       }
     }
 
+    horn = GET(SW_WARNBLINKER_HORN);
+
     // --- Verarbeiten ---
+    light_switch = false;
+    gear_up = false;
+    gear_down = false;
 
     // --- Ausgeben ---
     if (blinker_left) {
       SET(LED_BLINKER_LEFT);
     } else {
       RESET(LED_BLINKER_LEFT);
-    }
-
-    if (light_switch) {
-      SET(LED_LIGHT_SWITCH);
-    } else {
-      RESET(LED_LIGHT_SWITCH);
     }
 
     if (horn) {
@@ -211,23 +280,13 @@ int main(void) {
       RESET(HORN_PWM);
     }
 
-    if (gear_up) {
-      SET(LED_GEAR_UP);
-    } else {
-      RESET(LED_GEAR_UP);
-    }
-
-    if (gear_down) {
-      SET(LED_GEAR_DOWN);
-    } else {
-      RESET(LED_GEAR_DOWN);
-    }
-
     if (blinker_right) {
       SET(LED_BLINKER_RIGHT);
     } else {
       RESET(LED_BLINKER_RIGHT);
     }
+
+    // some button LEDs are set in the ISR for simplicity
   }
 
   while (true) {
