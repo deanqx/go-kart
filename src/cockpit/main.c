@@ -11,6 +11,7 @@
 #include "usart.h"
 #include <avr/interrupt.h>
 #include <avr/io.h>
+#include <avr/iocan32.h>
 #include <util/delay.h>
 
 #define COCKPIT_DISPLAY_IMPLEMENTATION
@@ -20,6 +21,12 @@
 #define BLINKER_BIT 1
 #define BACKLIGHT_BIT 2
 #define BRAKE_BIT 3
+
+typedef enum {
+  STOP,
+  FORWARD,
+  REVERSE,
+} MotorState;
 
 static const uint32_t CAN_ID_RX_BLINKER_STATE = 0x703;
 static const uint32_t CAN_ID_RX_SPEED = 0x605;
@@ -34,6 +41,14 @@ static const uint32_t CAN_ID_TX_BLINKER_BACK_RIGHT = 0x602;
 static const uint32_t CAN_ID_TX_BLINKER_BACK_LEFT = 0x601;
 static const uint32_t CAN_ID_TX_DRIVE_STATE = 0x101;
 
+MotorState motor_state;
+bool blinker_left;
+bool light_switch;
+bool horn;
+bool gear_up;
+bool gear_down;
+bool blinker_right;
+
 /// @returns 1 for error and 0 for successful
 uint8_t process_command_from_uart(const char command_char) {
   uart_puts("error: unknown command\n");
@@ -43,6 +58,16 @@ uint8_t process_command_from_uart(const char command_char) {
   uart_puts("info: rpm    | \n");
   uart_puts("\ninfo: Beispiel: rpm=123\n");
   return 1;
+}
+
+ISR(TIMER0_COMP_vect) {
+  // --- Einlesen ---
+  blinker_left = GET(SW_BLINKER_LEFT);
+  light_switch = GET(SW_LIGHT_SWITCH);
+  horn = GET(SW_WARNBLINKER_HORN);
+  gear_up = GET(SW_GEAR_UP);
+  gear_down = GET(SW_GEAR_DOWN);
+  blinker_right = GET(SW_BLINKER_RIGHT);
 }
 
 void init(void) {
@@ -73,6 +98,14 @@ void init(void) {
       _delay_ms(1000);
     }
   }
+
+  // clear timer value on compare match
+  // and set prescaler to 1024: 16 MHz / 1024 = 15625 Hz
+  TCCR0A = 1 << WGM01 | 1 << CS02 | 1 << CS00;
+  // enable interrupt on compare match with OCR0A
+  TIMSK0 = 1 << OCIE0A;
+  // 15625 Hz / 156 = 100.16 Hz
+  OCR0A = 156;
 }
 
 void test_display(void) {
@@ -131,25 +164,11 @@ void test_display(void) {
   }
 }
 
-typedef enum {
-  STOP,
-  FORWARD,
-  REVERSE,
-} MotorState;
-
 int main(void) {
   init();
   sei();
 
   // test_display();
-
-  MotorState motor_state;
-  bool blinker_left;
-  bool light_switch;
-  bool horn;
-  bool gear_up;
-  bool gear_down;
-  bool blinker_right;
 
   while (true) {
     // --- Einlesen ---
@@ -168,13 +187,6 @@ int main(void) {
         // möglich. Taster auf defekt überprüfen.
       }
     }
-
-    blinker_left = GET(SW_BLINKER_LEFT);
-    light_switch = GET(SW_LIGHT_SWITCH);
-    horn = GET(SW_WARNBLINKER_HORN);
-    gear_up = GET(SW_GEAR_UP);
-    gear_down = GET(SW_GEAR_DOWN);
-    blinker_right = GET(SW_BLINKER_RIGHT);
 
     // --- Verarbeiten ---
 
