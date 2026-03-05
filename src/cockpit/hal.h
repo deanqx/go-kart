@@ -40,9 +40,8 @@
 #define SW_BLINKER_LEFT E, 3
 #define LED_LIGHT_SWITCH E, 4
 #define SW_LIGHT_SWITCH E, 5
-// or horn
-#define LED_WARNBLINKER E, 6
-#define SW_WARNBLINKER E, 7
+#define LED_WARNBLINKER_HORN E, 6
+#define SW_WARNBLINKER_HORN E, 7
 
 // --- PORTG ---
 #define SW_GEAR_UP G, 0
@@ -76,7 +75,7 @@ void hal_init(void) {
   DDRC = _P(LED_BLINKER_RIGHT);
   DDRD = _P(UART1_TX) | _P(LED_GEAR_UP);
   DDRE = _P(UART0_TX_DISPLAY) | _P(LED_BLINKER_LEFT) | _P(LED_LIGHT_SWITCH) |
-         _P(LED_WARNBLINKER);
+         _P(LED_WARNBLINKER_HORN);
   DDRG = _P(LED_GEAR_DOWN);
 }
 

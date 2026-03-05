@@ -142,7 +142,13 @@ int main(void) {
   sei();
 
   // test_display();
+
   MotorState motor_state;
+  bool blinker_left;
+  bool light_switch;
+  bool horn;
+  bool gear_up;
+  bool gear_down;
   bool blinker_right;
 
   while (true) {
@@ -157,19 +163,58 @@ int main(void) {
       if (GET(SW_MOTOR_REVERSE_LA)) {
         motor_state = FORWARD;
       } else {
-        motor_state = STOP; // error
+        motor_state = STOP;
+        // error: Vorwärts- und Rückwärtsfahren nicht gleichzeitig
+        // möglich. Taster auf defekt überprüfen.
       }
     }
 
+    blinker_left = GET(SW_BLINKER_LEFT);
+    light_switch = GET(SW_LIGHT_SWITCH);
+    horn = GET(SW_WARNBLINKER_HORN);
+    gear_up = GET(SW_GEAR_UP);
+    gear_down = GET(SW_GEAR_DOWN);
     blinker_right = GET(SW_BLINKER_RIGHT);
 
     // --- Verarbeiten ---
 
     // --- Ausgeben ---
-    if (blinker_right && motor_state != STOP) {
+    if (blinker_left) {
+      SET(LED_BLINKER_LEFT);
+    } else {
+      RESET(LED_BLINKER_LEFT);
+    }
+
+    if (light_switch) {
+      SET(LED_LIGHT_SWITCH);
+    } else {
+      RESET(LED_LIGHT_SWITCH);
+    }
+
+    if (horn) {
+      SET(LED_WARNBLINKER_HORN);
       SET(HORN_PWM);
     } else {
+      RESET(LED_WARNBLINKER_HORN);
       RESET(HORN_PWM);
+    }
+
+    if (gear_up) {
+      SET(LED_GEAR_UP);
+    } else {
+      RESET(LED_GEAR_UP);
+    }
+
+    if (gear_down) {
+      SET(LED_GEAR_DOWN);
+    } else {
+      RESET(LED_GEAR_DOWN);
+    }
+
+    if (blinker_right) {
+      SET(LED_BLINKER_RIGHT);
+    } else {
+      RESET(LED_BLINKER_RIGHT);
     }
   }
 
