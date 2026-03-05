@@ -18,10 +18,10 @@
 #define COCKPIT_DISPLAY_IMPLEMENTATION
 #include "cockpit_display.h"
 
-#define REVERSELIGHT_BIT 0
+#define LOWER_LIGHT_BIT 0
 #define BLINKER_BIT 1
-#define BACKLIGHT_BIT 2
-#define BRAKE_BIT 3
+#define UPPER_WEAK_LIGHT_BIT 2
+#define UPPER_FULL_LIGHT_BIT 3
 
 typedef enum {
   STOP,
@@ -42,29 +42,17 @@ static const uint32_t CAN_ID_TX_BLINKER_BACK_RIGHT = 0x602;
 static const uint32_t CAN_ID_TX_BLINKER_BACK_LEFT = 0x601;
 static const uint32_t CAN_ID_TX_DRIVE_STATE = 0x101;
 
-MotorState motor_state;
+MotorState motor_state = STOP;
 GearState gear_state = GEAR_NEUTRAL;
 LightState light_state = LIGHT_OFF;
-bool horn;
-volatile bool blinker_left_live;
-volatile bool light_switch;
-volatile bool gear_up;
-volatile bool gear_down;
-volatile bool blinker_right_live;
-
-/// @returns 1 for error and 0 for successful
-uint8_t process_command_from_uart(const char command_char) {
-  uart_puts("error: unknown command\n");
-  uart_puts("info: UART Befehle:\n");
-  uart_puts("info: Befehl | Wert\n");
-  uart_puts("info: --------------------------\n");
-  uart_puts("info: rpm    | \n");
-  uart_puts("\ninfo: Beispiel: rpm=123\n");
-  return 1;
-}
+bool horn = false;
+volatile bool blinker_left_live = false;
+volatile bool light_switch = false;
+volatile bool gear_up = false;
+volatile bool gear_down = false;
+volatile bool blinker_right_live = false;
 
 #define TIMER0_SOFT_DIVISION 4
-
 ISR(TIMER0_COMP_vect) {
   static uint8_t interrupt_count = 0;
 
@@ -269,8 +257,8 @@ int main(void) {
         motor_state = FORWARD;
       } else {
         motor_state = STOP;
-        // error: Vorwärts- und Rückwärtsfahren nicht gleichzeitig
-        // möglich. Taster auf defekt überprüfen.
+        uart_puts("error: Vorwärts- und Rückwärtsfahren nicht gleichzeitig "
+                  "möglich. Taster auf defekt überprüfen.\n");
       }
     }
 
@@ -298,6 +286,7 @@ int main(void) {
     if (blinker_left != prev_blinker_left) {
       prev_blinker_left = blinker_left;
       cd_set_blinker_left(blinker_left);
+
       if (blinker_left) {
         SET(LED_BLINKER_LEFT);
       } else {
@@ -325,6 +314,7 @@ int main(void) {
 
     if (blinker_right != prev_blinker_right) {
       cd_set_blinker_right(blinker_right);
+
       if (blinker_right) {
         SET(LED_BLINKER_RIGHT);
       } else {
@@ -334,27 +324,97 @@ int main(void) {
 
     // some button LEDs are set in the ISR for simplicity
 
+    if (light_state != prev_light_state ||
+        blinker_right != prev_blinker_right) {
+      can_t msg_blinker = {
+          .flags.rtr = false,
+          .flags.extended = true,
+          .length = 1,
+      };
+
+      uint8_t blinker_front_command = blinker_right << BLINKER_BIT;
+
+      switch (light_state) {
+      case LIGHT_OFF:
+        break;
+      case LIGHT_DAY:
+        blinker_front_command |= 1 << LOWER_LIGHT_BIT;
+        break;
+      case LIGHT_LOW_BEAM:
+        blinker_front_command |=
+            1 << UPPER_WEAK_LIGHT_BIT | 1 << LOWER_LIGHT_BIT;
+        break;
+      case LIGHT_HIGH_BEAM:
+        blinker_front_command |=
+            1 << UPPER_FULL_LIGHT_BIT | 1 << LOWER_LIGHT_BIT;
+        break;
+      case LIGHT_STATE_COUNT:
+        break; // unreachable
+      }
+
+      uart1_puts("info: sende Befehl zu Blinker vorne rechts:");
+      uart1_puthex(blinker_front_command);
+      uart_putc('\n');
+
+      msg_blinker.id = CAN_ID_TX_BLINKER_FRONT_RIGHT;
+      msg_blinker.data[0] = blinker_front_command,
+      can_send_message(&msg_blinker);
+
+      uint8_t blinker_back_command = blinker_right << BLINKER_BIT;
+
+      uart1_puts("info: sende Befehl zu Blinker hinten rechts\n");
+      msg_blinker.id = CAN_ID_TX_BLINKER_BACK_RIGHT;
+      msg_blinker.data[0] = blinker_back_command,
+      can_send_message(&msg_blinker);
+    }
+
+    if (light_state != prev_light_state || blinker_left != prev_blinker_left) {
+      can_t msg_blinker = {
+          .flags.rtr = false,
+          .flags.extended = true,
+          .length = 1,
+      };
+
+      uint8_t blinker_front_command = blinker_left << BLINKER_BIT;
+
+      switch (light_state) {
+      case LIGHT_OFF:
+        break;
+      case LIGHT_DAY:
+        blinker_front_command |= 1 << LOWER_LIGHT_BIT;
+        break;
+      case LIGHT_LOW_BEAM:
+        blinker_front_command |=
+            1 << UPPER_WEAK_LIGHT_BIT | 1 << LOWER_LIGHT_BIT;
+        break;
+      case LIGHT_HIGH_BEAM:
+        blinker_front_command |=
+            1 << UPPER_FULL_LIGHT_BIT | 1 << LOWER_LIGHT_BIT;
+        break;
+      case LIGHT_STATE_COUNT:
+        break; // unreachable
+      }
+
+      uart1_puts("info: sende Befehl zu Blinker vorne rechts:");
+      uart1_puthex(blinker_front_command);
+      uart_putc('\n');
+
+      msg_blinker.id = CAN_ID_TX_BLINKER_FRONT_LEFT;
+      msg_blinker.data[0] = blinker_front_command,
+      can_send_message(&msg_blinker);
+
+      uint8_t blinker_back_command = blinker_left << BLINKER_BIT;
+
+      uart1_puts("info: sende Befehl zu Blinker hinten rechts\n");
+      msg_blinker.id = CAN_ID_TX_BLINKER_BACK_LEFT;
+      msg_blinker.data[0] = blinker_back_command,
+      can_send_message(&msg_blinker);
+    }
+
     prev_gear_state = gear_state;
     prev_light_state = light_state;
     prev_horn = horn;
     prev_blinker_right = blinker_right;
-  }
-
-  while (true) {
-    // --- Einlesen ---
-    // --- Verarbeiten ---
-    // --- Ausgeben ---
-    const can_t test_message = {
-        .id = CAN_ID_TX_BLINKER_BACK_LEFT,
-        .flags.rtr = false,
-        .flags.extended = true,
-        .length = 1,
-        // Bremslicht und Blinker anschalten
-        .data = {1 << BRAKE_BIT | 1 << BLINKER_BIT},
-    };
-
-    uart1_puts("info: send test message over CAN to blinker back left\n");
-    can_send_message(&test_message);
   }
 
 emergency_loop:
