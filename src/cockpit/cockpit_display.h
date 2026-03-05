@@ -33,12 +33,15 @@ typedef enum {
   GEAR_FIRST,
   GEAR_SECOND,
   GEAR_THIRD,
+  GEAR_STATE_COUNT,
 } GearState;
 
 typedef enum {
-  LIGHT_PARKING,
+  LIGHT_OFF,
+  LIGHT_DAY,
   LIGHT_LOW_BEAM,
   LIGHT_HIGH_BEAM,
+  LIGHT_STATE_COUNT,
 } LightState;
 
 typedef enum {
@@ -117,15 +120,20 @@ void cd_set_light(const LightState light_state) {
   CD_UART_PUTS("warnB.pic=1");
 
   switch (light_state) {
+  case LIGHT_OFF:
+    CD_UART_PUTC('5'); // display triangle for no light
+    break;
   case LIGHT_LOW_BEAM:
     CD_UART_PUTC('7');
     break;
   case LIGHT_HIGH_BEAM:
     CD_UART_PUTC('8');
     break;
-  case LIGHT_PARKING:
+  case LIGHT_DAY:
     CD_UART_PUTC('9');
     break;
+  case LIGHT_STATE_COUNT:
+    return; // unreachable
   }
 
   _cd_terminate();
@@ -198,6 +206,8 @@ void cd_set_gear(const GearState gear_state) {
   case GEAR_THIRD:
     CD_UART_PUTC('7');
     break;
+  case GEAR_STATE_COUNT:
+    return; // unreachable
   }
 
   _cd_terminate();
