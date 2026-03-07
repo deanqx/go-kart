@@ -22,13 +22,13 @@ void bc_init_timer0_timer1(void) {
   TCCR0A = 1 << WGM01;
   // F_CPU / 1024 = 16 MHz / 1024 = 15625 Hz
   TCCR0B = 1 << CS02 | 1 << CS00;
-  OCR0A = 217; // Timer0 at 72 Hz
+  OCR0A = 84; // Timer0 at 186 Hz
 
   // --- Timer1 ---
   // Clear OC1B on compare match, set OC1B at 1023 (large OCR1B value == bright)
   // clear timer on compare match with 1023
   TCCR1A = 1 << COM1B1 | 1 << WGM11 | 1 << WGM10;
-  // Timer1 clock: no prescaling, 16 MHz / 1023 = 15640 Hz
+  // Timer1 clock: no prescaling
   TCCR1B = 1 << WGM12 | 1 << CS10;
 }
 
@@ -70,7 +70,7 @@ bool bc_is_blinker_enabled(void) {
 
 ISR(TIMER0_COMPA_vect) {
   // timer frequency / SOFT_PRESCALER = frequency
-  static const uint8_t SOFT_PRESCALER = 3; // about 24 Hz
+  static const uint8_t SOFT_PRESCALER = 8; // about 23.25 Hz
 
   bc_interrupt_count++;
 

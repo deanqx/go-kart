@@ -84,7 +84,7 @@ uint8_t process_command_from_uart(const char command_char) {
 
 void add_timer0_state_message(void) {
   // Reusing timer0 from Blinker (blinker_controller.h)
-  OCR0B = 100;
+  OCR0B = 186;
   // enable interrupt for B
   TIMSK0 |= 1 << OCIE0B;
 }
