@@ -1,0 +1,49 @@
+@startuml
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam maxmessagesize 100
+
+actor Fahrer
+participant "Antrieb" as A
+participant "Bremse" as B
+participant "Ladeelektronik" as C
+participant "Gangschaltung" as D
+participant "Lenkrad" as E
+participant "Blinker-Module" as F
+
+Fahrer -> C: Versorgungsspannung freischalten
+activate C
+C --> Fahrer: Zustand der Batterie
+
+Fahrer -> E: Vorwärts
+activate E
+E -> A: Vorwärts
+activate A
+
+Fahrer -> A: Bremsepedal drücken
+A --> Fahrer: Bremsstärke anzeigen
+A -> B: Bremsstärke
+activate B
+B -> B: Bremse anziehen
+
+Fahrer -> B: Feststellbremse lösen
+B -> B: Feststellbremse lösen
+
+Fahrer -> E: Gang hochschalten
+E --> Fahrer: Gang anzeigen
+E -> D: aktuellen Gang
+activate D
+D -> D: Gang hochschalten
+
+C -> A: kein Ladekabel verbunden?
+Fahrer -> A: Gaspedaldrücken
+A -> A: Motordrehzahl erhöhen
+D --> Fahrer: Geschwindigkeit
+
+Fahrer -> E: rechts blinken
+E --> Fahrer: rechtes Blinkersymbol leuchtet
+E -> F: jeweils rechte Blinker einschalten
+activate F
+
+D --> Fahrer: Geschwindigkeit
+@enduml

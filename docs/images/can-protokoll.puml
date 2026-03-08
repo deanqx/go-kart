@@ -1,0 +1,48 @@
+@startuml
+left to right direction
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+' Horizontal lines: -->, <--, <-->
+' Vertical lines: ->, <-, <->
+
+actor Fahrer
+
+map Antrieb {
+}
+map Bremse {
+}
+map Gangschaltung {
+}
+map Ladeelektronik {
+}
+map Cockpit {
+}
+map Blinker {
+}
+
+Fahrer -|> Ladeelektronik : Versorgungsspannung freischalten
+Fahrer -|> Cockpit : Vorwärts/Stop/Rückwärts
+Fahrer -|> Cockpit: Lenkradtaster
+Fahrer -|> Bremse : Feststellbremse
+Fahrer -|> Antrieb : Bremspedal
+Fahrer -|> Antrieb : Gaspedal
+
+Blinker ..> Cockpit : 0x703 realer Blinker Zustand
+Bremse ..> Antrieb : 0x702 realer Bremsstärke
+Gangschaltung ..> Cockpit : 0x701 realer Gang und Bremsenzustand
+Gangschaltung --> Antrieb : 0x701 realer Gang und Bremsenzustand
+
+Gangschaltung ..> Cockpit : 0x605 Geschwindigkeit
+Cockpit --> Blinker : 0x601 - 0x604
+
+Antrieb --> Ladeelektronik : 0x302 Strom
+Ladeelektronik ..> Cockpit : 0x301 Batterie Zustand
+Ladeelektronik --> Antrieb : 0x301 Batterieladen?
+
+Cockpit --> Gangschaltung : 0x202 aktueller Gang
+Antrieb ..> Cockpit : 0x201 Bremsstärke
+Antrieb --> Bremse : 0x201 Bremsstärke
+
+Cockpit --> Antrieb : 0x101 Vorwärts/Stop/Rückwärts
+
+@enduml
