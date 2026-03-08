@@ -7,6 +7,7 @@
  */
 
 #include "can.h"
+#include "cockpit_display.c"
 #include "hal.h"
 #include "usart.h"
 #include <avr/interrupt.h>
@@ -14,9 +15,6 @@
 #include <avr/iocan32.h>
 #include <stdint.h>
 #include <util/delay.h>
-
-#define COCKPIT_DISPLAY_IMPLEMENTATION
-#include "cockpit_display.h"
 
 #define LOWER_LIGHT_BIT 0
 #define BLINKER_BIT 1
