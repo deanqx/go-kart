@@ -1,0 +1,159 @@
+@startuml
+scale 50 as 50 pixels
+binary "ISR" as I
+binary "1. LED" as L1
+binary "2. LED" as L2
+binary "3. LED" as L3
+binary "4. LED" as L4
+binary "5. LED" as L5
+binary "6. LED" as L6
+binary "7. LED" as L7
+binary "8. LED" as L8
+binary "9. LED" as L9
+binary "10. LED" as L10
+binary "11. LED" as L11
+binary "12. LED" as L12
+binary "13. LED" as L13
+binary "14. LED" as L14
+
+@0
+I is 1
+L1 is 1
+@10
+I is 0
+@43
+I is 1
+L2 is 1
+@53
+I is 0
+@87
+I is 1
+L3 is 1
+@97
+I is 0
+@130
+I is 1
+L4 is 1
+@140
+I is 0
+@173
+I is 1
+L5 is 1
+@183
+I is 0
+@216
+I is 1
+L6 is 1
+@226
+I is 0
+@260
+I is 1
+L7 is 1
+@270
+I is 0
+@303
+I is 1
+L8 is 1
+@313
+I is 0
+@346
+I is 1
+L9 is 1
+@356
+I is 0
+@390
+I is 1
+L10 is 1
+@400
+I is 0
+@433
+I is 1
+L11 is 1
+@443
+I is 0
+@476
+I is 1
+L12 is 1
+@486
+I is 0
+@519
+I is 1
+L13 is 1
+@529
+I is 0
+@563
+L14@563 <-> @519: 43 ms
+L14@563 <-> @909: 346 ms
+I is 1
+L14 is 1
+@573
+I is 0
+@583
+I is 0
+@606
+I is 1
+@616
+I is 0
+@649
+I is 1
+@659
+I is 0
+@692
+I is 1
+@702
+I is 0
+@736
+I is 1
+@746
+I is 0
+@779
+I is 1
+@789
+I is 0
+@823
+I is 1
+@833
+I is 0
+@866
+I is 1
+@876
+I is 0
+@909
+I is 1
+L2 is 0
+L3 is 0
+L4 is 0
+L5 is 0
+L6 is 0
+L7 is 0
+L8 is 0
+L9 is 0
+L10 is 0
+L11 is 0
+L12 is 0
+L13 is 0
+L14 is 0
+@919
+I is 0
+@952
+I is 1
+L1 is 1
+@962
+I is 0
+@995
+I is 1
+L2 is 1
+@1005
+I is 0
+@1039
+I is 1
+L3 is 1
+@1049
+I is 0
+@1082
+I is 1
+L4 is 1
+@1092
+I is 0
+
+@enduml
