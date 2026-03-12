@@ -20,7 +20,6 @@
 #define UPPER_WEAK_LIGHT_BIT 2
 #define UPPER_FULL_LIGHT_BIT 3
 
-static const char PRINT_UART_COMMANDS = 0xff;
 static const uint32_t CAN_ID_TX_STATE = 0x703;
 
 #if defined(BLINKER_FRONT) && defined(BLINKER_RIGHT)
@@ -35,6 +34,48 @@ static const uint32_t CAN_ID_RX_COMMAND = 0x601;
 
 static uint8_t light_state = 0;
 static bool send_light_state = false;
+
+void print_help_message(void) {
+  uart_puts("\ninfo: JCS-BK_1091_GO-KART von Dean Schneider (GYT26)\n");
+  uart_puts("info: Blinker-Modul ");
+
+#if defined(BLINKER_FRONT)
+  uart_puts("vorne ");
+#else // defined(BLINKER_BACK)
+  uart_puts("hinten ");
+#endif
+
+#if defined(BLINKER_RIGHT)
+  uart_puts("rechts ");
+#else // defined(BLINKER_LEFT)
+  uart_puts("links ");
+#endif
+
+  uart_puts("mit CAN-ID: 0x");
+  uart_puthex((uint8_t)(CAN_ID_RX_COMMAND >> 8 * 3));
+  uart_puthex((uint8_t)(CAN_ID_RX_COMMAND >> 8 * 2));
+  uart_puthex((uint8_t)(CAN_ID_RX_COMMAND >> 8 * 1));
+  uart_puthex((uint8_t)(CAN_ID_RX_COMMAND >> 8 * 0));
+  uart_puts("\ninfo: State Nachrichten werden an 0x");
+  uart_puthex((uint8_t)(CAN_ID_TX_STATE >> 8 * 3));
+  uart_puthex((uint8_t)(CAN_ID_TX_STATE >> 8 * 2));
+  uart_puthex((uint8_t)(CAN_ID_TX_STATE >> 8 * 1));
+  uart_puthex((uint8_t)(CAN_ID_TX_STATE >> 8 * 0));
+  uart_puts(" gesendet.\n");
+
+  uart_puts("info: UART Befehle:\n");
+  uart_puts("info: an='1', aus='2': Blinker\n");
+#ifdef BLINKER_FRONT
+  uart_puts("info: an='3', aus='4': Tagfahrlicht\n");
+  uart_puts("info: '5': Abblendlicht\n");
+  uart_puts("info: '6': Fernlicht\n");
+#else // BLINKER_BACK
+  uart_puts("info: an='3', aus='4': Rueckfahrlicht\n");
+  uart_puts("info: '5': Ruecklicht\n");
+  uart_puts("info: '6': Bremslicht\n");
+#endif
+  uart_puts("info: '7': kein oberes Licht\n");
+}
 
 /// @returns 1 for error and 0 for successful
 uint8_t process_command_from_uart(const char command_char) {
@@ -52,30 +93,19 @@ uint8_t process_command_from_uart(const char command_char) {
     light_state &= ~(1 << LOWER_LIGHT_BIT);
     break;
   case '5':
-    light_state |= (1 << UPPER_WEAK_LIGHT_BIT);
+    light_state = (light_state & ~(1 << UPPER_FULL_LIGHT_BIT)) |
+                  (1 << UPPER_WEAK_LIGHT_BIT);
     break;
   case '6':
-    light_state |= (1 << UPPER_FULL_LIGHT_BIT);
+    light_state = (light_state & ~(1 << UPPER_WEAK_LIGHT_BIT)) |
+                  (1 << UPPER_FULL_LIGHT_BIT);
     break;
   case '7':
-    light_state &= ~(1 << UPPER_WEAK_LIGHT_BIT);
-    light_state &= ~(1 << UPPER_FULL_LIGHT_BIT);
+    light_state &= ~(1 << UPPER_WEAK_LIGHT_BIT | 1 << UPPER_FULL_LIGHT_BIT);
     break;
   default:
     uart_puts("error: unknown command\n");
-  case PRINT_UART_COMMANDS:
-    uart_puts("info: UART Befehle:\n");
-    uart_puts("info: an='1', aus='2': Blinker\n");
-#ifdef BLINKER_FRONT
-    uart_puts("info: an='3', aus='4': Tagfahrlicht\n");
-    uart_puts("info: '5': Abblendlicht\n");
-    uart_puts("info: '6': Fernlicht\n");
-#else // BLINKER_BACK
-    uart_puts("info: an='3', aus='4': Rueckfahrlicht\n");
-    uart_puts("info: '5': Ruecklicht\n");
-    uart_puts("info: '6': Bremslicht\n");
-#endif
-    uart_puts("info: '7': kein oberes Licht\n");
+    print_help_message();
     return 1;
   }
 
@@ -84,19 +114,19 @@ uint8_t process_command_from_uart(const char command_char) {
 
 void add_timer0_state_message(void) {
   // Reusing timer0 from Blinker (blinker_controller.h)
-  OCR0B = 186;
   // enable interrupt for B
   TIMSK0 |= 1 << OCIE0B;
 }
 
 ISR(TIMER0_COMPB_vect) {
   static uint8_t interrupt_count = 0;
+  static const uint8_t STATE_MESSAGE_DIVISION = 186;
 
   interrupt_count++;
 
   // about 1 Hz
   // timer frequency / SOFT_PRESCALER = frequency
-  if (interrupt_count == OCR0A) {
+  if (interrupt_count == STATE_MESSAGE_DIVISION) {
     interrupt_count = 0;
     send_light_state = true;
   }
@@ -108,19 +138,7 @@ void init(void) {
   bc_init_timer0_timer1();
   add_timer0_state_message();
 
-  uart_puts("\ninfo: JCS-BK_1091_GO-KART von Dean Schneider (GYT26)\n");
-  uart_puts("info: Blinker-Modul mit CAN-ID: 0x");
-  uart_puthex((uint8_t)(CAN_ID_RX_COMMAND >> 8 * 3));
-  uart_puthex((uint8_t)(CAN_ID_RX_COMMAND >> 8 * 2));
-  uart_puthex((uint8_t)(CAN_ID_RX_COMMAND >> 8 * 1));
-  uart_puthex((uint8_t)(CAN_ID_RX_COMMAND >> 8 * 0));
-  uart_puts("\ninfo: State Nachrichten werden an 0x");
-  uart_puthex((uint8_t)(CAN_ID_TX_STATE >> 8 * 3));
-  uart_puthex((uint8_t)(CAN_ID_TX_STATE >> 8 * 2));
-  uart_puthex((uint8_t)(CAN_ID_TX_STATE >> 8 * 1));
-  uart_puthex((uint8_t)(CAN_ID_TX_STATE >> 8 * 0));
-  uart_puts(" gesendet.\n");
-  process_command_from_uart(PRINT_UART_COMMANDS);
+  print_help_message();
 
   if (!can_init(BITRATE_125_KBPS)) {
     uart_puts("fatal error: while can initialization\n");
@@ -217,11 +235,11 @@ int main(void) {
           .length = 5,
           .data =
               {
+                  light_state,
                   (uint8_t)(CAN_ID_RX_COMMAND >> 8 * 3),
                   (uint8_t)(CAN_ID_RX_COMMAND >> 8 * 2),
                   (uint8_t)(CAN_ID_RX_COMMAND >> 8 * 1),
                   (uint8_t)(CAN_ID_RX_COMMAND >> 8 * 0),
-                  light_state,
               },
       };
 
