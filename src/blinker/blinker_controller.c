@@ -132,7 +132,7 @@ ISR(TIMER0_COMPA_vect) {
 
   bc_current_stage++;
 
-  // 14 LEDs, 11 iterations with all enabled
+  // 14 LEDs, 7 iterations with all enabled
   if (bc_current_stage >= 14 + 7) {
     bc_current_stage = 0;
   }
