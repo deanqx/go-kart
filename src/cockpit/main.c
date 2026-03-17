@@ -132,7 +132,7 @@ void init(void) {
   hal_init();
 
   uart1_puts("\ninfo: JCS-BK_1091_GO-KART von Dean Schneider (GYT26)\n");
-  uart1_puts("\ninfo: Cockpit Modul\n");
+  uart1_puts("info: Cockpit Modul\n");
 
   if (!can_init(BITRATE_125_KBPS)) {
     while (true) {
@@ -255,8 +255,9 @@ int main(void) {
         motor_state = FORWARD;
       } else {
         motor_state = STOP;
-        uart_puts("error: Vorwärts- und Rückwärtsfahren nicht gleichzeitig "
-                  "möglich. Taster auf defekt überprüfen.\n");
+        uart1_puts(
+            "error: Vorwärts- und Rückwärtsfahren nicht gleichzeitig möglich."
+            " Taster auf defekt überprüfen.\n");
       }
     }
 
@@ -282,7 +283,6 @@ int main(void) {
 
     // --- Ausgeben ---
     if (blinker_left != prev_blinker_left) {
-      prev_blinker_left = blinker_left;
       cd_set_blinker_left(blinker_left);
 
       if (blinker_left) {
@@ -350,17 +350,18 @@ int main(void) {
         break; // unreachable
       }
 
-      uart1_puts("info: sende Befehl zu Blinker vorne rechts:");
+      uart1_puts("info: Befehl an linke Blinker: 0x");
       uart1_puthex(blinker_front_command);
-      uart_putc('\n');
+      uart1_putc('\n');
 
+      uart1_puts("info: sende Befehl an Blinker vorne rechts\n");
       msg_blinker.id = CAN_ID_TX_BLINKER_FRONT_RIGHT;
       msg_blinker.data[0] = blinker_front_command,
       can_send_message(&msg_blinker);
 
       uint8_t blinker_back_command = blinker_right << BLINKER_BIT;
 
-      uart1_puts("info: sende Befehl zu Blinker hinten rechts\n");
+      uart1_puts("info: sende Befehl an Blinker hinten rechts\n");
       msg_blinker.id = CAN_ID_TX_BLINKER_BACK_RIGHT;
       msg_blinker.data[0] = blinker_back_command,
       can_send_message(&msg_blinker);
@@ -393,22 +394,24 @@ int main(void) {
         break; // unreachable
       }
 
-      uart1_puts("info: sende Befehl zu Blinker vorne rechts:");
+      uart1_puts("info: Befehl an linke Blinker: 0x");
       uart1_puthex(blinker_front_command);
-      uart_putc('\n');
+      uart1_putc('\n');
 
+      uart1_puts("info: sende Befehl an Blinker vorne links\n");
       msg_blinker.id = CAN_ID_TX_BLINKER_FRONT_LEFT;
-      msg_blinker.data[0] = blinker_front_command,
+      msg_blinker.data[0] = blinker_front_command;
       can_send_message(&msg_blinker);
 
       uint8_t blinker_back_command = blinker_left << BLINKER_BIT;
 
-      uart1_puts("info: sende Befehl zu Blinker hinten rechts\n");
+      uart1_puts("info: sende Befehl an Blinker hinten links\n");
       msg_blinker.id = CAN_ID_TX_BLINKER_BACK_LEFT;
-      msg_blinker.data[0] = blinker_back_command,
+      msg_blinker.data[0] = blinker_back_command;
       can_send_message(&msg_blinker);
     }
 
+    prev_blinker_left = blinker_left;
     prev_gear_state = gear_state;
     prev_light_state = light_state;
     prev_horn = horn;
