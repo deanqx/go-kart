@@ -8,6 +8,7 @@
 
 #include "can.h"
 #include "cockpit_display.c"
+#include "cockpit_display.h"
 #include "hal.h"
 #include "usart.h"
 #include <avr/interrupt.h>
@@ -359,7 +360,9 @@ int main(void) {
       msg_blinker.data[0] = blinker_front_command,
       can_send_message(&msg_blinker);
 
-      uint8_t blinker_back_command = blinker_right << BLINKER_BIT;
+      const uint8_t blinker_back_command =
+          blinker_right << BLINKER_BIT | (light_state == LIGHT_LOW_BEAM)
+                                             << UPPER_WEAK_LIGHT_BIT;
 
       uart1_puts("info: sende Befehl an Blinker hinten rechts\n");
       msg_blinker.id = CAN_ID_TX_BLINKER_BACK_RIGHT;
@@ -403,7 +406,9 @@ int main(void) {
       msg_blinker.data[0] = blinker_front_command;
       can_send_message(&msg_blinker);
 
-      uint8_t blinker_back_command = blinker_left << BLINKER_BIT;
+      const uint8_t blinker_back_command =
+          blinker_left << BLINKER_BIT | (light_state == LIGHT_LOW_BEAM)
+                                            << UPPER_WEAK_LIGHT_BIT;
 
       uart1_puts("info: sende Befehl an Blinker hinten links\n");
       msg_blinker.id = CAN_ID_TX_BLINKER_BACK_LEFT;
