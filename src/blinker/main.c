@@ -9,7 +9,7 @@
 #include "blinker_controller.c"
 #include "can.h"
 #include "hal.h"
-#include "uart_AM16M1.h"
+#include "uart_AT16M1.c"
 #include <avr/interrupt.h>
 #include <avr/io.h>
 #include <stdint.h>
