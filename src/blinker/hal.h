@@ -48,6 +48,10 @@
 #define _SET_INPUT2(port, bit) DDR##port |= (1 << bit)
 #define _SET_OUTPUT2(port, bit) DDR##port |= (1 << bit)
 
+// Beispiel: SET(LED_BLINKER_0);
+// => _SET2(D, 5);
+// => PORTD |= (1 << 5);
+
 #define SET(port_comma_bit) _SET2(port_comma_bit)
 #define RESET(port_comma_bit) _RESET2(port_comma_bit)
 #define TOGGLE(port_comma_bit) _TOGGLE2(port_comma_bit)

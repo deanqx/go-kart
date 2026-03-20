@@ -181,7 +181,7 @@ typedef enum {
 } side_t;
 
 /// @param send_to_right_side: true=right, false=left
-void foo(side_t to_right_side) {
+void send_command_to_blinker_side(side_t to_right_side) {
   can_t msg_blinker = {
       .flags.rtr = false,
       .flags.extended = true,
@@ -231,8 +231,10 @@ void foo(side_t to_right_side) {
     uart1_puts("links");
   }
 
-  uart1_puts(": 0x");
+  uart1_puts("\ninfo: Befehl vorne: 0x");
   uart1_puthex(blinker_front_command);
+  uart1_puts("\ninfo: Befehl hinten: 0x");
+  uart1_puthex(blinker_back_command);
   uart1_putc('\n');
 
   if (to_right_side == RIGHT) {
@@ -342,8 +344,8 @@ int main(void) {
         // reset blinker to synchronise them
         blinker_right = false;
         blinker_left = false;
-        foo(RIGHT);
-        foo(LEFT);
+        send_command_to_blinker_side(RIGHT);
+        send_command_to_blinker_side(LEFT);
 
         // set blinker again
         blinker_right = true;
@@ -361,11 +363,11 @@ int main(void) {
 
     if (light_state != prev_light_state ||
         blinker_right != prev_blinker_right) {
-      foo(RIGHT);
+      send_command_to_blinker_side(RIGHT);
     }
 
     if (light_state != prev_light_state || blinker_left != prev_blinker_left) {
-      foo(LEFT);
+      send_command_to_blinker_side(LEFT);
     }
 
     if (blinker_left != prev_blinker_left) {
