@@ -44,7 +44,11 @@ static const uint32_t CAN_ID_TX_DRIVE_STATE = 0x101;
 MotorState motor_state = STOP;
 GearState gear_state = GEAR_NEUTRAL;
 LightState light_state = LIGHT_OFF;
+bool warnblinker = false;
 bool horn = false;
+bool blinker_right = false;
+bool blinker_left = false;
+
 volatile bool blinker_left_live = false;
 volatile bool light_switch = false;
 volatile bool gear_up = false;
@@ -171,61 +175,84 @@ void init(void) {
   cd_set_light(light_state);
 }
 
-void test_display(void) {
-  cd_set_rpm(789);
-  cd_set_speed(12);
+typedef enum {
+  LEFT,
+  RIGHT,
+} side_t;
 
-  cd_set_throttle(80);
-  cd_set_brake(60);
+/// @param send_to_right_side: true=right, false=left
+void foo(side_t to_right_side) {
+  can_t msg_blinker = {
+      .flags.rtr = false,
+      .flags.extended = true,
+      .length = 1,
+  };
 
-  while (true) {
-    cd_set_blinker_left(true);
-    _delay_ms(200);
-    cd_set_blinker_left(false);
-    _delay_ms(200);
+  uint8_t blinker_front_command = 0;
+  uint8_t blinker_back_command = 0;
 
-    cd_set_blinker_right(true);
-    _delay_ms(200);
-    cd_set_blinker_right(false);
-    _delay_ms(200);
-
-    cd_set_warnblinker(true);
-    _delay_ms(500);
-    cd_set_warnblinker(false);
-    _delay_ms(500);
-
-    cd_set_light(LIGHT_DAY);
-    _delay_ms(700);
-    cd_set_light(LIGHT_LOW_BEAM);
-    _delay_ms(700);
-    cd_set_light(LIGHT_HIGH_BEAM);
-    _delay_ms(700);
-
-    cd_set_gear(GEAR_NEUTRAL);
-    _delay_ms(200);
-    cd_set_gear(GEAR_FIRST);
-    _delay_ms(200);
-    cd_set_gear(GEAR_SECOND);
-    _delay_ms(200);
-    cd_set_gear(GEAR_THIRD);
-    _delay_ms(200);
-
-    cd_set_battery(BATTERY_EMPTY);
-    _delay_ms(500);
-    cd_set_battery(BATTERY_ONE_FOURTH);
-    _delay_ms(500);
-    cd_set_battery(BATTERY_TWO_FOURTH);
-    _delay_ms(500);
-    cd_set_battery(BATTERY_THREE_FOURTH);
-    _delay_ms(500);
-    cd_set_battery(BATTERY_FOUR_FOURTH);
-    _delay_ms(500);
-    cd_set_battery(BATTERY_CHARGING);
-    _delay_ms(500);
-
-    _delay_ms(2000);
+  if (to_right_side == RIGHT) {
+    blinker_front_command |= blinker_right << BLINKER_BIT;
+  } else if (to_right_side == LEFT) {
+    blinker_front_command |= blinker_left << BLINKER_BIT;
   }
+
+  switch (light_state) {
+  case LIGHT_OFF:
+    break;
+  case LIGHT_DAY:
+    blinker_front_command |= 1 << LOWER_LIGHT_BIT;
+    break;
+  case LIGHT_LOW_BEAM:
+    blinker_front_command |= 1 << UPPER_WEAK_LIGHT_BIT | 1 << LOWER_LIGHT_BIT;
+    break;
+  case LIGHT_HIGH_BEAM:
+    blinker_front_command |= 1 << UPPER_FULL_LIGHT_BIT | 1 << LOWER_LIGHT_BIT;
+    break;
+  case LIGHT_STATE_COUNT:
+    break; // unreachable
+  }
+
+  if (to_right_side == RIGHT) {
+    blinker_back_command |= blinker_right << BLINKER_BIT;
+  } else if (to_right_side == LEFT) {
+    blinker_back_command |= blinker_left << BLINKER_BIT;
+  }
+
+  if (light_state == LIGHT_LOW_BEAM || light_state == LIGHT_HIGH_BEAM) {
+    blinker_back_command |= 1 << UPPER_WEAK_LIGHT_BIT;
+  }
+
+  uart1_puts("info: sende Befehl an Blinker vorne und hinten ");
+
+  if (to_right_side == RIGHT) {
+    uart1_puts("rechts");
+  } else if (to_right_side == LEFT) {
+    uart1_puts("links");
+  }
+
+  uart1_puts(": 0x");
+  uart1_puthex(blinker_front_command);
+  uart1_putc('\n');
+
+  if (to_right_side == RIGHT) {
+    msg_blinker.id = CAN_ID_TX_BLINKER_FRONT_RIGHT;
+  } else if (to_right_side == LEFT) {
+    msg_blinker.id = CAN_ID_TX_BLINKER_FRONT_LEFT;
+  }
+  msg_blinker.data[0] = blinker_front_command;
+  can_send_message(&msg_blinker);
+
+  if (to_right_side == RIGHT) {
+    msg_blinker.id = CAN_ID_TX_BLINKER_BACK_RIGHT;
+  } else if (to_right_side == LEFT) {
+    msg_blinker.id = CAN_ID_TX_BLINKER_BACK_LEFT;
+  }
+  msg_blinker.data[0] = blinker_back_command;
+  can_send_message(&msg_blinker);
 }
+
+void test_display(void);
 
 int main(void) {
   init();
@@ -238,11 +265,12 @@ int main(void) {
   bool prev_blinker_left = false;
   bool prev_horn = false;
   bool prev_blinker_right = false;
+  bool prev_warnblinker = false;
 
   while (true) {
     // --- Einlesen ---
-    const bool blinker_left = blinker_left_live;
-    const bool blinker_right = blinker_right_live;
+    blinker_left = blinker_left_live;
+    blinker_right = blinker_right_live;
     horn = GET(SW_WARNBLINKER_HORN);
 
     if (GET(SW_MOTOR_START_LA)) {
@@ -266,6 +294,12 @@ int main(void) {
     if (light_switch) {
       light_switch = false;
       light_state = (light_state + 1) % LIGHT_STATE_COUNT;
+    }
+
+    if (blinker_left && blinker_right) {
+      warnblinker = true;
+    } else if (warnblinker) {
+      warnblinker = false;
     }
 
     if (gear_up) {
@@ -323,97 +357,35 @@ int main(void) {
 
     // some button LEDs are set in the ISR for simplicity
 
+    if (warnblinker != prev_warnblinker) {
+      if (warnblinker) {
+        // reset blinker to synchronise them
+        blinker_right = false;
+        blinker_left = false;
+        foo(RIGHT);
+        foo(LEFT);
+
+        // set blinker again
+        blinker_right = true;
+        blinker_left = true;
+        prev_blinker_right = false;
+        prev_blinker_left = false;
+      } else {
+        // disable both if one is disabled
+        blinker_right = false;
+        blinker_left = false;
+        blinker_right_live = false;
+        blinker_left_live = false;
+      }
+    }
+
     if (light_state != prev_light_state ||
         blinker_right != prev_blinker_right) {
-      can_t msg_blinker = {
-          .flags.rtr = false,
-          .flags.extended = true,
-          .length = 1,
-      };
-
-      uint8_t blinker_front_command = blinker_right << BLINKER_BIT;
-
-      switch (light_state) {
-      case LIGHT_OFF:
-        break;
-      case LIGHT_DAY:
-        blinker_front_command |= 1 << LOWER_LIGHT_BIT;
-        break;
-      case LIGHT_LOW_BEAM:
-        blinker_front_command |=
-            1 << UPPER_WEAK_LIGHT_BIT | 1 << LOWER_LIGHT_BIT;
-        break;
-      case LIGHT_HIGH_BEAM:
-        blinker_front_command |=
-            1 << UPPER_FULL_LIGHT_BIT | 1 << LOWER_LIGHT_BIT;
-        break;
-      case LIGHT_STATE_COUNT:
-        break; // unreachable
-      }
-
-      uart1_puts("info: Befehl an linke Blinker: 0x");
-      uart1_puthex(blinker_front_command);
-      uart1_putc('\n');
-
-      uart1_puts("info: sende Befehl an Blinker vorne rechts\n");
-      msg_blinker.id = CAN_ID_TX_BLINKER_FRONT_RIGHT;
-      msg_blinker.data[0] = blinker_front_command,
-      can_send_message(&msg_blinker);
-
-      const uint8_t blinker_back_command =
-          blinker_right << BLINKER_BIT | (light_state == LIGHT_LOW_BEAM)
-                                             << UPPER_WEAK_LIGHT_BIT;
-
-      uart1_puts("info: sende Befehl an Blinker hinten rechts\n");
-      msg_blinker.id = CAN_ID_TX_BLINKER_BACK_RIGHT;
-      msg_blinker.data[0] = blinker_back_command,
-      can_send_message(&msg_blinker);
+      foo(RIGHT);
     }
 
     if (light_state != prev_light_state || blinker_left != prev_blinker_left) {
-      can_t msg_blinker = {
-          .flags.rtr = false,
-          .flags.extended = true,
-          .length = 1,
-      };
-
-      uint8_t blinker_front_command = blinker_left << BLINKER_BIT;
-
-      switch (light_state) {
-      case LIGHT_OFF:
-        break;
-      case LIGHT_DAY:
-        blinker_front_command |= 1 << LOWER_LIGHT_BIT;
-        break;
-      case LIGHT_LOW_BEAM:
-        blinker_front_command |=
-            1 << UPPER_WEAK_LIGHT_BIT | 1 << LOWER_LIGHT_BIT;
-        break;
-      case LIGHT_HIGH_BEAM:
-        blinker_front_command |=
-            1 << UPPER_FULL_LIGHT_BIT | 1 << LOWER_LIGHT_BIT;
-        break;
-      case LIGHT_STATE_COUNT:
-        break; // unreachable
-      }
-
-      uart1_puts("info: Befehl an linke Blinker: 0x");
-      uart1_puthex(blinker_front_command);
-      uart1_putc('\n');
-
-      uart1_puts("info: sende Befehl an Blinker vorne links\n");
-      msg_blinker.id = CAN_ID_TX_BLINKER_FRONT_LEFT;
-      msg_blinker.data[0] = blinker_front_command;
-      can_send_message(&msg_blinker);
-
-      const uint8_t blinker_back_command =
-          blinker_left << BLINKER_BIT | (light_state == LIGHT_LOW_BEAM)
-                                            << UPPER_WEAK_LIGHT_BIT;
-
-      uart1_puts("info: sende Befehl an Blinker hinten links\n");
-      msg_blinker.id = CAN_ID_TX_BLINKER_BACK_LEFT;
-      msg_blinker.data[0] = blinker_back_command;
-      can_send_message(&msg_blinker);
+      foo(LEFT);
     }
 
     prev_blinker_left = blinker_left;
@@ -421,8 +393,65 @@ int main(void) {
     prev_light_state = light_state;
     prev_horn = horn;
     prev_blinker_right = blinker_right;
+    prev_warnblinker = warnblinker;
   }
 
 emergency_loop:
   goto emergency_loop;
+}
+
+void test_display(void) {
+  cd_set_rpm(789);
+  cd_set_speed(12);
+
+  cd_set_throttle(80);
+  cd_set_brake(60);
+
+  while (true) {
+    cd_set_blinker_left(true);
+    _delay_ms(200);
+    cd_set_blinker_left(false);
+    _delay_ms(200);
+
+    cd_set_blinker_right(true);
+    _delay_ms(200);
+    cd_set_blinker_right(false);
+    _delay_ms(200);
+
+    cd_set_warnblinker(true);
+    _delay_ms(500);
+    cd_set_warnblinker(false);
+    _delay_ms(500);
+
+    cd_set_light(LIGHT_DAY);
+    _delay_ms(700);
+    cd_set_light(LIGHT_LOW_BEAM);
+    _delay_ms(700);
+    cd_set_light(LIGHT_HIGH_BEAM);
+    _delay_ms(700);
+
+    cd_set_gear(GEAR_NEUTRAL);
+    _delay_ms(200);
+    cd_set_gear(GEAR_FIRST);
+    _delay_ms(200);
+    cd_set_gear(GEAR_SECOND);
+    _delay_ms(200);
+    cd_set_gear(GEAR_THIRD);
+    _delay_ms(200);
+
+    cd_set_battery(BATTERY_EMPTY);
+    _delay_ms(500);
+    cd_set_battery(BATTERY_ONE_FOURTH);
+    _delay_ms(500);
+    cd_set_battery(BATTERY_TWO_FOURTH);
+    _delay_ms(500);
+    cd_set_battery(BATTERY_THREE_FOURTH);
+    _delay_ms(500);
+    cd_set_battery(BATTERY_FOUR_FOURTH);
+    _delay_ms(500);
+    cd_set_battery(BATTERY_CHARGING);
+    _delay_ms(500);
+
+    _delay_ms(2000);
+  }
 }
