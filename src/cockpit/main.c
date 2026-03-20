@@ -55,7 +55,7 @@ volatile bool gear_up = false;
 volatile bool gear_down = false;
 volatile bool blinker_right_live = false;
 
-#define TIMER0_SOFT_DIVISION 4
+#define TIMER0_SOFT_DIVISION 6
 ISR(TIMER0_COMP_vect) {
   static uint8_t interrupt_count = 0;
 
@@ -317,16 +317,6 @@ int main(void) {
     }
 
     // --- Ausgeben ---
-    if (blinker_left != prev_blinker_left) {
-      cd_set_blinker_left(blinker_left);
-
-      if (blinker_left) {
-        SET(LED_BLINKER_LEFT);
-      } else {
-        RESET(LED_BLINKER_LEFT);
-      }
-    }
-
     if (light_state != prev_light_state) {
       cd_set_light(light_state);
     }
@@ -343,16 +333,6 @@ int main(void) {
 
     if (gear_state != prev_gear_state) {
       cd_set_gear(gear_state);
-    }
-
-    if (blinker_right != prev_blinker_right) {
-      cd_set_blinker_right(blinker_right);
-
-      if (blinker_right) {
-        SET(LED_BLINKER_RIGHT);
-      } else {
-        RESET(LED_BLINKER_RIGHT);
-      }
     }
 
     // some button LEDs are set in the ISR for simplicity
@@ -386,6 +366,26 @@ int main(void) {
 
     if (light_state != prev_light_state || blinker_left != prev_blinker_left) {
       foo(LEFT);
+    }
+
+    if (blinker_left != prev_blinker_left) {
+      cd_set_blinker_left(blinker_left);
+
+      if (blinker_left) {
+        SET(LED_BLINKER_LEFT);
+      } else {
+        RESET(LED_BLINKER_LEFT);
+      }
+    }
+
+    if (blinker_right != prev_blinker_right) {
+      cd_set_blinker_right(blinker_right);
+
+      if (blinker_right) {
+        SET(LED_BLINKER_RIGHT);
+      } else {
+        RESET(LED_BLINKER_RIGHT);
+      }
     }
 
     prev_blinker_left = blinker_left;
