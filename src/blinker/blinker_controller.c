@@ -11,8 +11,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-static uint8_t bc_current_stage = 0;
-static uint8_t bc_interrupt_count = 0;
+volatile static uint8_t bc_current_stage = 0;
+volatile static uint8_t bc_interrupt_count = 0;
 
 /// Have to enable global interrupts with sei()
 /// See project documentation for more details about calculation

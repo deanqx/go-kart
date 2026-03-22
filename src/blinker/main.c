@@ -33,7 +33,7 @@ static const uint32_t CAN_ID_RX_COMMAND = 0x601;
 #endif
 
 static uint8_t light_state = 0;
-static bool send_light_state = false;
+volatile static bool send_light_state = false;
 
 void print_help_message(void) {
   uart_puts("\ninfo: JCS-BK_1091_GO-KART von Dean Schneider (GYT26)\n");
